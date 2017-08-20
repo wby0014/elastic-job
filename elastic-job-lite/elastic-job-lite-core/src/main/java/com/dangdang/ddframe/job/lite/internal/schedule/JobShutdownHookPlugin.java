@@ -8,6 +8,8 @@ import org.quartz.SchedulerException;
 import org.quartz.plugins.management.ShutdownHookPlugin;
 import org.quartz.spi.ClassLoadHelper;
 
+import java.util.Date;
+
 /**
  * 作业关闭钩子.
  *
@@ -25,6 +27,7 @@ public final class JobShutdownHookPlugin extends ShutdownHookPlugin {
     
     @Override
     public void shutdown() {
+        System.out.println("shutdown now");
         CoordinatorRegistryCenter regCenter = JobRegistry.getInstance().getRegCenter(jobName);
         if (null == regCenter) {
             return;
@@ -34,5 +37,6 @@ public final class JobShutdownHookPlugin extends ShutdownHookPlugin {
             leaderService.removeLeader();
         }
         new InstanceService(regCenter, jobName).removeInstance();
+        System.out.println("shutdown finish:" + new Date());
     }
 }

@@ -42,7 +42,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 public final class JavaMain {
     
     private static final int EMBED_ZOOKEEPER_PORT = 4181;
-    
+
     private static final String ZOOKEEPER_CONNECTION_STRING = "localhost:" + EMBED_ZOOKEEPER_PORT;
     
     private static final String JOB_NAMESPACE = "elastic-job-example-lite-java";
@@ -62,16 +62,22 @@ public final class JavaMain {
     // CHECKSTYLE:OFF
     public static void main(final String[] args) throws IOException {
     // CHECKSTYLE:ON
-        EmbedZookeeperServer.start(EMBED_ZOOKEEPER_PORT);
+//
         CoordinatorRegistryCenter regCenter = setUpRegistryCenter();
         JobEventConfiguration jobEventConfig = new JobEventRdbConfiguration(setUpEventTraceDataSource());
         setUpSimpleJob(regCenter, jobEventConfig);
-        setUpDataflowJob(regCenter, jobEventConfig);
-        setUpScriptJob(regCenter, jobEventConfig);
+//        setUpDataflowJob(regCenter, jobEventConfig);
+//        setUpScriptJob(regCenter, jobEventConfig);
     }
     
     private static CoordinatorRegistryCenter setUpRegistryCenter() {
-        ZookeeperConfiguration zkConfig = new ZookeeperConfiguration(ZOOKEEPER_CONNECTION_STRING, JOB_NAMESPACE);
+        ZookeeperConfiguration zkConfig = null;
+        if (false) {
+            EmbedZookeeperServer.start(EMBED_ZOOKEEPER_PORT);
+            zkConfig = new ZookeeperConfiguration(ZOOKEEPER_CONNECTION_STRING, JOB_NAMESPACE);
+        } else {
+            zkConfig = new ZookeeperConfiguration("127.0.0.1:2181", JOB_NAMESPACE);
+        }
         CoordinatorRegistryCenter result = new ZookeeperRegistryCenter(zkConfig);
         result.init();
         return result;
@@ -87,9 +93,11 @@ public final class JavaMain {
     }
     
     private static void setUpSimpleJob(final CoordinatorRegistryCenter regCenter, final JobEventConfiguration jobEventConfig) {
-        JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaSimpleJob", "0/5 * * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou").build();
+        JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaSimpleJob", "0/5 * * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou")
+//        JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaSimpleJob", "0 0/5 * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou")
+                .failover(true).build();
         SimpleJobConfiguration simpleJobConfig = new SimpleJobConfiguration(coreConfig, JavaSimpleJob.class.getCanonicalName());
-        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).build(), jobEventConfig).init();
+        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(false).overwrite(false).disabled(false).build(), jobEventConfig).init(); // todo monitorExecution / overwrite
     }
     
     private static void setUpDataflowJob(final CoordinatorRegistryCenter regCenter, final JobEventConfiguration jobEventConfig) {

@@ -139,7 +139,7 @@ public final class ShardingService {
             jobNodeStorage.createJobNodeIfNeeded(ShardingNode.ROOT + "/" + i);
         }
         int actualShardingTotalCount = jobNodeStorage.getJobNodeChildrenKeys(ShardingNode.ROOT).size();
-        if (actualShardingTotalCount > shardingTotalCount) {
+        if (actualShardingTotalCount > shardingTotalCount) { // TODO 芋艿：实际节点数大于分片数
             for (int i = shardingTotalCount; i < actualShardingTotalCount; i++) {
                 jobNodeStorage.removeJobNodeIfExisted(ShardingNode.ROOT + "/" + i);
             }

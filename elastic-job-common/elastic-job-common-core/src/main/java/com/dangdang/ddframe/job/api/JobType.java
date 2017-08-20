@@ -23,6 +23,17 @@ package com.dangdang.ddframe.job.api;
  * @author caohao
  */
 public enum JobType {
-    
-    SIMPLE, DATAFLOW, SCRIPT
+
+    /**
+     * 简单作业
+     */
+    SIMPLE,
+    /**
+     * 数据流作业
+     */
+    DATAFLOW,
+    /**
+     * 脚本作业
+     */
+    SCRIPT
 }

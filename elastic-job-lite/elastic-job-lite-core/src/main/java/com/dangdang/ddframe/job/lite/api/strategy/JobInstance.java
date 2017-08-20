@@ -42,7 +42,9 @@ public final class JobInstance {
     private final String jobInstanceId;
     
     public JobInstance() {
-        jobInstanceId = IpUtils.getIp() + DELIMITER + ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+        jobInstanceId = IpUtils.getIp()
+                + DELIMITER
+                + ManagementFactory.getRuntimeMXBean().getName().split("@")[0]; // PID
     }
     
     /**
@@ -53,4 +55,5 @@ public final class JobInstance {
     public String getIp() {
         return jobInstanceId.substring(0, jobInstanceId.indexOf(DELIMITER));
     }
+
 }

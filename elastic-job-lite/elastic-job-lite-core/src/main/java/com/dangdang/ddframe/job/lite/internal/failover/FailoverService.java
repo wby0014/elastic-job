@@ -26,10 +26,7 @@ import com.dangdang.ddframe.job.lite.internal.storage.LeaderExecutionCallback;
 import com.dangdang.ddframe.job.reg.base.CoordinatorRegistryCenter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * 作业失效转移服务.
@@ -58,7 +55,7 @@ public final class FailoverService {
      */
     public void setCrashedFailoverFlag(final int item) {
         if (!isFailoverAssigned(item)) {
-            jobNodeStorage.createJobNodeIfNeeded(FailoverNode.getItemsNode(item));
+            jobNodeStorage.createJobNodeIfNeeded(FailoverNode.getItemsNode(item)); // todo: leader/failover/items/${item}
         }
     }
     
@@ -74,7 +71,8 @@ public final class FailoverService {
             jobNodeStorage.executeInLeader(FailoverNode.LATCH, new FailoverLeaderExecutionCallback());
         }
     }
-    
+
+    // todo 芋艿：有失效节点目录 && 有失效节点 && 本地jobName 不在运行中
     private boolean needFailover() {
         return jobNodeStorage.isJobNodeExisted(FailoverNode.ITEMS_ROOT) && !jobNodeStorage.getJobNodeChildrenKeys(FailoverNode.ITEMS_ROOT).isEmpty()
                 && !JobRegistry.getInstance().isJobRunning(jobName);
@@ -102,7 +100,7 @@ public final class FailoverService {
         List<Integer> result = new ArrayList<>(items.size());
         for (String each : items) {
             int item = Integer.parseInt(each);
-            String node = FailoverNode.getExecutionFailoverNode(item);
+            String node = FailoverNode.getExecutionFailoverNode(item); // todo: sharding/${item}/failover
             if (jobNodeStorage.isJobNodeExisted(node) && jobInstanceId.equals(jobNodeStorage.getJobNodeDataDirectly(node))) {
                 result.add(item);
             }
@@ -160,8 +158,10 @@ public final class FailoverService {
             jobNodeStorage.fillEphemeralJobNode(FailoverNode.getExecutionFailoverNode(crashedItem), JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId());
             jobNodeStorage.removeJobNodeIfExisted(FailoverNode.getItemsNode(crashedItem));
             // TODO 不应使用triggerJob, 而是使用executor统一调度
+            // todo 疑问：为什么要用executor统一，后面研究下
             JobScheduleController jobScheduleController = JobRegistry.getInstance().getJobScheduleController(jobName);
             if (null != jobScheduleController) {
+//                System.out.println("现在事件：" + new Date());
                 jobScheduleController.triggerJob();
             }
         }

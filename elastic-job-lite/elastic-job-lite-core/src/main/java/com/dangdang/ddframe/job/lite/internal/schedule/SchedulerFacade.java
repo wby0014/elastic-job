@@ -38,25 +38,46 @@ import java.util.List;
  * @author zhangliang
  */
 public final class SchedulerFacade {
-    
+
+    /**
+     * 作业名称
+     */
     private final String jobName;
-    
+    /**
+     * 作业配置服务
+     */
     private final ConfigurationService configService;
-    
-    private final LeaderService leaderService;
-    
-    private final ServerService serverService;
-    
-    private final InstanceService instanceService;
-    
+    /**
+     * 作业分片服务
+     */
     private final ShardingService shardingService;
-    
+    /**
+     * 主节点服务
+     */
+    private final LeaderService leaderService;
+    /**
+     * 作业服务器服务
+     */
+    private final ServerService serverService;
+    /**
+     * 作业运行实例服务
+     */
+    private final InstanceService instanceService;
+    /**
+     * 执行作业服务
+     */
     private final ExecutionService executionService;
-    
+    /**
+     * 作业监控服务
+     */
     private final MonitorService monitorService;
-    
+    /**
+     * 调解作业不一致状态服务
+     */
     private final ReconcileService reconcileService;
-    
+    /**
+     * 作业注册中心的监听器管理者
+     */
     private ListenerManager listenerManager;
     
     public SchedulerFacade(final CoordinatorRegistryCenter regCenter, final String jobName) {
@@ -100,7 +121,9 @@ public final class SchedulerFacade {
      * @return 更新后的作业配置
      */
     public LiteJobConfiguration updateJobConfiguration(final LiteJobConfiguration liteJobConfig) {
+        // 更新 作业配置
         configService.persist(liteJobConfig);
+        // 读取 作业配置
         return configService.load(false);
     }
     
@@ -110,12 +133,19 @@ public final class SchedulerFacade {
      * @param enabled 作业是否启用
      */
     public void registerStartUpInfo(final boolean enabled) {
+        // 开启 所有监听器
         listenerManager.startAllListeners();
+        // 选举 主节点
         leaderService.electLeader();
+        // 持久化 作业服务器上线信息
         serverService.persistOnline(enabled);
+        // 持久化 作业运行实例上线相关信息
         instanceService.persistOnline();
+        // 设置 需要重新分片的标记
         shardingService.setReshardingFlag();
+        // 初始化 作业监听服务
         monitorService.listen();
+        // 初始化 调解作业不一致状态服务
         if (!reconcileService.isRunning()) {
             reconcileService.startAsync();
         }

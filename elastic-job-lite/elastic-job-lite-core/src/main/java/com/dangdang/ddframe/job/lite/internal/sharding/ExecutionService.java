@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 执行作业的服务.
+ * 执行作业服务.
  * 
  * @author zhangliang
  * @author caohao

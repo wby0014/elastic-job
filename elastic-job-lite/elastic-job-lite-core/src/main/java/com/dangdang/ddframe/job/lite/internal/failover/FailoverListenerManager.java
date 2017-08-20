@@ -75,20 +75,20 @@ public final class FailoverListenerManager extends AbstractListenerManager {
         
         @Override
         protected void dataChanged(final String path, final Type eventType, final String data) {
-            if (isFailoverEnabled() && Type.NODE_REMOVED == eventType && instanceNode.isInstancePath(path)) {
+            if (isFailoverEnabled() && Type.NODE_REMOVED == eventType && instanceNode.isInstancePath(path)) { // todo 记录：/instances/${instance_id}移除
                 String jobInstanceId = path.substring(instanceNode.getInstanceFullPath().length() + 1);
                 if (jobInstanceId.equals(JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId())) {
                     return;
                 }
-                List<Integer> failoverItems = failoverService.getFailoverItems(jobInstanceId);
+                List<Integer> failoverItems = failoverService.getFailoverItems(jobInstanceId); // todo: sharding/${item}/failover
                 if (!failoverItems.isEmpty()) {
                     for (int each : failoverItems) {
                         failoverService.setCrashedFailoverFlag(each);
                         failoverService.failoverIfNecessary();
                     }
                 } else {
-                    for (int each : shardingService.getShardingItems(jobInstanceId)) {
-                        failoverService.setCrashedFailoverFlag(each);
+                    for (int each : shardingService.getShardingItems(jobInstanceId)) { // todo: sharding/${item}/instance
+                        failoverService.setCrashedFailoverFlag(each); // TODO 可能性：如果有两个节点都在处理这个，A已经标记 failover，B可能重复去标记，执行。
                         failoverService.failoverIfNecessary();
                     }
                 }

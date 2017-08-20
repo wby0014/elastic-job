@@ -33,17 +33,35 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class JobRegistry {
-    
+
+    /**
+     * 单例
+     */
     private static volatile JobRegistry instance;
-    
+    /**
+     * 作业调度控制器集合
+     * key：作业名称
+     */
     private Map<String, JobScheduleController> schedulerMap = new ConcurrentHashMap<>();
-    
+    /**
+     * 注册中心集合
+     * key：作业名称
+     */
     private Map<String, CoordinatorRegistryCenter> regCenterMap = new ConcurrentHashMap<>();
-    
+    /**
+     * 作业运行实例集合
+     * key：作业名称
+     */
     private Map<String, JobInstance> jobInstanceMap = new ConcurrentHashMap<>();
-    
+    /**
+     * 运行中作业集合
+     * key：作业名字
+     */
     private Map<String, Boolean> jobRunningMap = new ConcurrentHashMap<>();
-    
+    /**
+     * 作业总分片数量集合
+     * key：作业名字
+     */
     private Map<String, Integer> currentShardingTotalCountMap = new ConcurrentHashMap<>();
     
     /**
@@ -72,7 +90,7 @@ public final class JobRegistry {
     public void registerJob(final String jobName, final JobScheduleController jobScheduleController, final CoordinatorRegistryCenter regCenter) {
         schedulerMap.put(jobName, jobScheduleController);
         regCenterMap.put(jobName, regCenter);
-        regCenter.addCacheData("/" + jobName);
+        regCenter.addCacheData("/" + jobName); // TODO 疑问：疑问？
     }
     
     /**

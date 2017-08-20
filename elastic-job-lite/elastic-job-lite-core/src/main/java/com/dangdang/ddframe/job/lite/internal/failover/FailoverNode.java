@@ -32,13 +32,13 @@ public final class FailoverNode {
     
     static final String LEADER_ROOT = LeaderNode.ROOT + "/" + FAILOVER;
     
-    static final String ITEMS_ROOT = LEADER_ROOT + "/items";
+    static final String ITEMS_ROOT = LEADER_ROOT + "/items"; // todo: leader/failover/items/
     
-    static final String ITEMS = ITEMS_ROOT + "/%s";
+    static final String ITEMS = ITEMS_ROOT + "/%s"; // todo: leader/failover/items/${item}
     
-    static final String LATCH = LEADER_ROOT + "/latch";
+    static final String LATCH = LEADER_ROOT + "/latch"; // todo: leader/failover/latch
     
-    private static final String EXECUTION_FAILOVER = ShardingNode.ROOT + "/%s/" + FAILOVER;
+    private static final String EXECUTION_FAILOVER = ShardingNode.ROOT + "/%s/" + FAILOVER; // todo: sharding/${item}/failover
     
     private final JobNodePath jobNodePath;
     

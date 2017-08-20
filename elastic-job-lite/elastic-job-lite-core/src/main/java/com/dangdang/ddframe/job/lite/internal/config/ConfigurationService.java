@@ -32,9 +32,14 @@ import com.google.common.base.Optional;
  * @author caohao
  */
 public final class ConfigurationService {
-    
+
+    /**
+     * 时间服务
+     */
     private final TimeService timeService;
-    
+    /**
+     * 作业节点数据访问类
+     */
     private final JobNodeStorage jobNodeStorage;
     
     public ConfigurationService(final CoordinatorRegistryCenter regCenter, final String jobName) {
@@ -50,7 +55,7 @@ public final class ConfigurationService {
      */
     public LiteJobConfiguration load(final boolean fromCache) {
         String result;
-        if (fromCache) {
+        if (fromCache) { // 缓存
             result = jobNodeStorage.getJobNodeData(ConfigurationNode.ROOT);
             if (null == result) {
                 result = jobNodeStorage.getJobNodeDataDirectly(ConfigurationNode.ROOT);
@@ -75,7 +80,8 @@ public final class ConfigurationService {
     
     private void checkConflictJob(final LiteJobConfiguration liteJobConfig) {
         Optional<LiteJobConfiguration> liteJobConfigFromZk = find();
-        if (liteJobConfigFromZk.isPresent() && !liteJobConfigFromZk.get().getTypeConfig().getJobClass().equals(liteJobConfig.getTypeConfig().getJobClass())) {
+        if (liteJobConfigFromZk.isPresent()
+                && !liteJobConfigFromZk.get().getTypeConfig().getJobClass().equals(liteJobConfig.getTypeConfig().getJobClass())) { // jobClass 是否相同
             throw new JobConfigurationException("Job conflict with register center. The job '%s' in register center's class is '%s', your job class is '%s'", 
                     liteJobConfig.getJobName(), liteJobConfigFromZk.get().getTypeConfig().getJobClass(), liteJobConfig.getTypeConfig().getJobClass());
         }
