@@ -33,9 +33,8 @@ import java.util.concurrent.TimeUnit;
  * @author zhangliang
  */
 public final class ExecutorServiceObject {
-    
+
     private final ThreadPoolExecutor threadPoolExecutor;
-    
     private final BlockingQueue<Runnable> workQueue;
     
     public ExecutorServiceObject(final String namingPattern, final int threadSize) {

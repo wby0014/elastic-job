@@ -148,16 +148,19 @@ public final class LiteJobFacade implements JobFacade {
     
     @Override
     public boolean isExecuteMisfired(final Collection<Integer> shardingItems) {
-        return isEligibleForJobRunning() && configService.load(true).getTypeConfig().getCoreConfig().isMisfire() && !executionService.getMisfiredJobItems(shardingItems).isEmpty();
+        return isEligibleForJobRunning() // 合适继续运行
+                && configService.load(true).getTypeConfig().getCoreConfig().isMisfire() // 作业配置开启作业被错过触发
+                && !executionService.getMisfiredJobItems(shardingItems).isEmpty(); // 所执行的作业分片存在被错过( misfired )
     }
     
     @Override
     public boolean isEligibleForJobRunning() {
         LiteJobConfiguration liteJobConfig = configService.load(true);
         if (liteJobConfig.getTypeConfig() instanceof DataflowJobConfiguration) {
-            return !shardingService.isNeedSharding() && ((DataflowJobConfiguration) liteJobConfig.getTypeConfig()).isStreamingProcess();    
+            return !shardingService.isNeedSharding() // 作业不需要重新分片
+                    && ((DataflowJobConfiguration) liteJobConfig.getTypeConfig()).isStreamingProcess();
         }
-        return !shardingService.isNeedSharding();
+        return !shardingService.isNeedSharding(); // 作业不需要重新分片
     }
     
     @Override

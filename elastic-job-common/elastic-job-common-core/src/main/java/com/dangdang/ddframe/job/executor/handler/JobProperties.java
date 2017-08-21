@@ -93,11 +93,18 @@ public final class JobProperties {
          * 线程池服务处理器.
          */
         EXECUTOR_SERVICE_HANDLER("executor_service_handler", ExecutorServiceHandler.class, DefaultExecutorServiceHandler.class.getCanonicalName());
-        
+
+        /**
+         * 枚举值
+         */
         private final String key;
-    
+        /**
+         * 接口
+         */
         private final Class<?> classType;
-        
+        /**
+         * 默认实现
+         */
         private final String defaultValue;
         
         /**

@@ -44,12 +44,15 @@ public final class JobExecutorFactory {
      */
     @SuppressWarnings("unchecked")
     public static AbstractElasticJobExecutor getJobExecutor(final ElasticJob elasticJob, final JobFacade jobFacade) {
+        // ScriptJob
         if (null == elasticJob) {
             return new ScriptJobExecutor(jobFacade);
         }
+        // SimpleJob
         if (elasticJob instanceof SimpleJob) {
             return new SimpleJobExecutor((SimpleJob) elasticJob, jobFacade);
         }
+        // DataflowJob
         if (elasticJob instanceof DataflowJob) {
             return new DataflowJobExecutor((DataflowJob) elasticJob, jobFacade);
         }

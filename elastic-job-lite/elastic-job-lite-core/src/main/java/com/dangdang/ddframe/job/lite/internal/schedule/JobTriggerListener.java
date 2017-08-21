@@ -43,6 +43,7 @@ public final class JobTriggerListener extends TriggerListenerSupport {
     @Override
     public void triggerMisfired(final Trigger trigger) {
         if (null != trigger.getPreviousFireTime()) {
+            System.err.println("乌拉巴哈");
             executionService.setMisfire(shardingService.getLocalShardingItems());
         }
     }

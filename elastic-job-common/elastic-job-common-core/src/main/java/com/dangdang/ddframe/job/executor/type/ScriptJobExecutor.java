@@ -49,9 +49,16 @@ public final class ScriptJobExecutor extends AbstractElasticJobExecutor {
         }
         executeScript(shardingContext, scriptCommandLine);
     }
-    
+
+    /**
+     * 执行脚本
+     *
+     * @param shardingContext 分片上下文
+     * @param scriptCommandLine 执行脚本路径
+     */
     private void executeScript(final ShardingContext shardingContext, final String scriptCommandLine) {
         CommandLine commandLine = CommandLine.parse(scriptCommandLine);
+        // JSON 格式传递参数
         commandLine.addArgument(GsonFactory.getGson().toJson(shardingContext), false);
         try {
             new DefaultExecutor().execute(commandLine);

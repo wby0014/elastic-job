@@ -34,6 +34,7 @@ import org.apache.commons.dbcp.BasicDataSource;
 
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -72,7 +73,7 @@ public final class JavaMain {
     
     private static CoordinatorRegistryCenter setUpRegistryCenter() {
         ZookeeperConfiguration zkConfig = null;
-        if (false) {
+        if (true) {
             EmbedZookeeperServer.start(EMBED_ZOOKEEPER_PORT);
             zkConfig = new ZookeeperConfiguration(ZOOKEEPER_CONNECTION_STRING, JOB_NAMESPACE);
         } else {
@@ -97,7 +98,7 @@ public final class JavaMain {
 //        JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaSimpleJob", "0 0/5 * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou")
                 .failover(true).build();
         SimpleJobConfiguration simpleJobConfig = new SimpleJobConfiguration(coreConfig, JavaSimpleJob.class.getCanonicalName());
-        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(false).overwrite(false).disabled(false).build(), jobEventConfig).init(); // todo monitorExecution / overwrite
+        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(true).overwrite(true).disabled(false).build(), jobEventConfig).init(); // todo monitorExecution / overwrite
     }
     
     private static void setUpDataflowJob(final CoordinatorRegistryCenter regCenter, final JobEventConfiguration jobEventConfig) {
@@ -108,7 +109,8 @@ public final class JavaMain {
     
     private static void setUpScriptJob(final CoordinatorRegistryCenter regCenter, final JobEventConfiguration jobEventConfig) throws IOException {
         JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("scriptElasticJob", "0/5 * * * * ?", 3).build();
-        ScriptJobConfiguration scriptJobConfig = new ScriptJobConfiguration(coreConfig, buildScriptCommandLine());
+//        ScriptJobConfiguration scriptJobConfig = new ScriptJobConfiguration(coreConfig, buildScriptCommandLine());
+        ScriptJobConfiguration scriptJobConfig = new ScriptJobConfiguration(coreConfig, "wget http://www.baidu.com;wget https://www.baidu.com;");
         new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(scriptJobConfig).build(), jobEventConfig).init();
     }
     
@@ -116,7 +118,7 @@ public final class JavaMain {
         if (System.getProperties().getProperty("os.name").contains("Windows")) {
             return Paths.get(JavaMain.class.getResource("/script/demo.bat").getPath().substring(1)).toString();
         }
-        Path result = Paths.get(JavaMain.class.getResource("/script/demo.sh").getPath());
+        Path result = Paths.get(URLDecoder.decode(JavaMain.class.getResource("/script/demo.sh").getPath(), "utf-8"));
         Files.setPosixFilePermissions(result, PosixFilePermissions.fromString("rwxr-xr-x"));
         return result.toString();
     }
