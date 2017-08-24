@@ -56,7 +56,11 @@ public final class ZookeeperRegistryCenter implements CoordinatorRegistryCenter 
     
     @Getter(AccessLevel.PROTECTED)
     private ZookeeperConfiguration zkConfig;
-    
+
+    /**
+     * 缓存
+     * key：/作业名/
+     */
     private final Map<String, TreeCache> caches = new HashMap<>();
     
     @Getter
@@ -72,13 +76,14 @@ public final class ZookeeperRegistryCenter implements CoordinatorRegistryCenter 
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
                 .connectString(zkConfig.getServerLists())
                 .retryPolicy(new ExponentialBackoffRetry(zkConfig.getBaseSleepTimeMilliseconds(), zkConfig.getMaxRetries(), zkConfig.getMaxSleepTimeMilliseconds()))
-                .namespace(zkConfig.getNamespace());
+                .namespace(zkConfig.getNamespace()); // 命名空间
         if (0 != zkConfig.getSessionTimeoutMilliseconds()) {
-            builder.sessionTimeoutMs(zkConfig.getSessionTimeoutMilliseconds());
+            builder.sessionTimeoutMs(zkConfig.getSessionTimeoutMilliseconds()); // 会话超时时间，默认 60 * 1000 毫秒
         }
         if (0 != zkConfig.getConnectionTimeoutMilliseconds()) {
-            builder.connectionTimeoutMs(zkConfig.getConnectionTimeoutMilliseconds());
+            builder.connectionTimeoutMs(zkConfig.getConnectionTimeoutMilliseconds()); // 连接超时时间，默认 15 * 1000 毫秒
         }
+        // 认证
         if (!Strings.isNullOrEmpty(zkConfig.getDigest())) {
             builder.authorization("digest", zkConfig.getDigest().getBytes(Charsets.UTF_8))
                     .aclProvider(new ACLProvider() {
@@ -96,6 +101,7 @@ public final class ZookeeperRegistryCenter implements CoordinatorRegistryCenter 
         }
         client = builder.build();
         client.start();
+        // 连接 Zookeeper
         try {
             if (!client.blockUntilConnected(zkConfig.getMaxSleepTimeMilliseconds() * zkConfig.getMaxRetries(), TimeUnit.MILLISECONDS)) {
                 client.close();
@@ -132,7 +138,7 @@ public final class ZookeeperRegistryCenter implements CoordinatorRegistryCenter 
     
     @Override
     public String get(final String key) {
-        TreeCache cache = findTreeCache(key);
+        TreeCache cache = findTreeCache(key); // 获取缓存
         if (null == cache) {
             return getDirectly(key);
         }
@@ -145,7 +151,7 @@ public final class ZookeeperRegistryCenter implements CoordinatorRegistryCenter 
     
     private TreeCache findTreeCache(final String key) {
         for (Entry<String, TreeCache> entry : caches.entrySet()) {
-            if (key.startsWith(entry.getKey())) {
+            if (key.startsWith(entry.getKey())) { // startsWith
                 return entry.getValue();
             }
         }

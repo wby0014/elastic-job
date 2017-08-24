@@ -42,12 +42,17 @@ public final class RegistryCenterConnectionStateListener implements ConnectionSt
             return;
         }
         JobScheduleController jobScheduleController = JobRegistry.getInstance().getJobScheduleController(jobName);
-        if (ConnectionState.SUSPENDED == newState || ConnectionState.LOST == newState) {
+        if (ConnectionState.SUSPENDED == newState || ConnectionState.LOST == newState) { // Zookeeper 连接终端 或 连接丢失
+            // 暂时作业调度
             jobScheduleController.pauseJob();
-        } else if (ConnectionState.RECONNECTED == newState) {
+        } else if (ConnectionState.RECONNECTED == newState) { // Zookeeper 重新连上
+            // 持久化作业服务器上线信息
             serverService.persistOnline(serverService.isEnableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp()));
+            // 持久化作业运行实例上线相关信息
             instanceService.persistOnline();
+            // 清除本地分配的作业分片项运行中的标记
             executionService.clearRunningInfo(shardingService.getLocalShardingItems());
+            // 恢复作业调度
             jobScheduleController.resumeJob();
         }
     }

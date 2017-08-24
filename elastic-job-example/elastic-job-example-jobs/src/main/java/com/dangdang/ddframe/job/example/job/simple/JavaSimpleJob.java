@@ -19,13 +19,11 @@ package com.dangdang.ddframe.job.example.job.simple;
 
 import com.dangdang.ddframe.job.api.ShardingContext;
 import com.dangdang.ddframe.job.api.simple.SimpleJob;
-import com.dangdang.ddframe.job.example.fixture.entity.Foo;
 import com.dangdang.ddframe.job.example.fixture.repository.FooRepository;
 import com.dangdang.ddframe.job.example.fixture.repository.FooRepositoryFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 public class JavaSimpleJob implements SimpleJob {
     
@@ -39,9 +37,14 @@ public class JavaSimpleJob implements SimpleJob {
 //        if (true) {
 //            throw new RuntimeException("不论~");
 //        }
-        List<Foo> data = fooRepository.findTodoData(shardingContext.getShardingParameter(), 10);
-        for (Foo each : data) {
-            fooRepository.setCompleted(each.getId());
+//        List<Foo> data = fooRepository.findTodoData(shardingContext.getShardingParameter(), 10);
+//        for (Foo each : data) {
+//            fooRepository.setCompleted(each.getId());
+//        }
+        try {
+            Thread.sleep(70 * 1000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

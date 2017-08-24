@@ -73,7 +73,7 @@ public final class JavaMain {
     
     private static CoordinatorRegistryCenter setUpRegistryCenter() {
         ZookeeperConfiguration zkConfig = null;
-        if (true) {
+        if (false) {
             EmbedZookeeperServer.start(EMBED_ZOOKEEPER_PORT);
             zkConfig = new ZookeeperConfiguration(ZOOKEEPER_CONNECTION_STRING, JOB_NAMESPACE);
         } else {
@@ -98,7 +98,7 @@ public final class JavaMain {
 //        JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaSimpleJob", "0 0/5 * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou")
                 .failover(true).build();
         SimpleJobConfiguration simpleJobConfig = new SimpleJobConfiguration(coreConfig, JavaSimpleJob.class.getCanonicalName());
-        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(true).overwrite(true).disabled(false).build(), jobEventConfig).init(); // todo monitorExecution / overwrite
+        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(true).overwrite(true).disabled(true).build(), jobEventConfig).init(); // todo monitorExecution / overwrite
     }
     
     private static void setUpDataflowJob(final CoordinatorRegistryCenter regCenter, final JobEventConfiguration jobEventConfig) {

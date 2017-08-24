@@ -75,6 +75,7 @@ public final class ListenerManager {
      * 开启所有监听器.
      */
     public void startAllListeners() {
+        // 开启 不同服务监听管理器
         electionListenerManager.start();
         shardingListenerManager.start();
         failoverListenerManager.start();
@@ -83,6 +84,7 @@ public final class ListenerManager {
         triggerListenerManager.start();
         rescheduleListenerManager.start();
         guaranteeListenerManager.start();
+        // 开启 注册中心连接状态监听器
         jobNodeStorage.addConnectionStateListener(regCenterConnectionStateListener);
     }
 }

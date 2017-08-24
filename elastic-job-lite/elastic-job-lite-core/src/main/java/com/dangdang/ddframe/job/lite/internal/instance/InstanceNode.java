@@ -65,7 +65,12 @@ public final class InstanceNode {
     boolean isLocalInstancePath(final String path) {
         return path.equals(jobNodePath.getFullPath(String.format(INSTANCES, JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId())));
     }
-    
+
+    /**
+     * 获取当前运行实例节点路径
+     *
+     * @return 当前运行实例节点路径
+     */
     String getLocalInstanceNode() {
         return String.format(INSTANCES, JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId());
     }

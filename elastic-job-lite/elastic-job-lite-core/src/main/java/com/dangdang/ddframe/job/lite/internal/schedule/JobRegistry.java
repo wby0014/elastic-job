@@ -90,7 +90,8 @@ public final class JobRegistry {
     public void registerJob(final String jobName, final JobScheduleController jobScheduleController, final CoordinatorRegistryCenter regCenter) {
         schedulerMap.put(jobName, jobScheduleController);
         regCenterMap.put(jobName, regCenter);
-        regCenter.addCacheData("/" + jobName); // TODO 疑问：疑问？
+        // 添加注册中心缓存
+        regCenter.addCacheData("/" + jobName);
     }
     
     /**

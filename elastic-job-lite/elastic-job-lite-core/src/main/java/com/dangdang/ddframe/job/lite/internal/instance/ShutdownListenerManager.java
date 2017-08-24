@@ -51,13 +51,16 @@ public final class ShutdownListenerManager extends AbstractListenerManager {
     public void start() {
         addDataListener(new InstanceShutdownStatusJobListener());
     }
-    
+
+    // TODO 芋艿：触发情况？？？
     class InstanceShutdownStatusJobListener extends AbstractJobListener {
         
         @Override
         protected void dataChanged(final String path, final Type eventType, final String data) {
-            if (!JobRegistry.getInstance().isShutdown(jobName) && !JobRegistry.getInstance().getJobScheduleController(jobName).isPaused()
-                    && isRemoveInstance(path, eventType) && !isReconnectedRegistryCenter()) {
+            if (!JobRegistry.getInstance().isShutdown(jobName)
+                    && !JobRegistry.getInstance().getJobScheduleController(jobName).isPaused() // 作业未暂停调度
+                    && isRemoveInstance(path, eventType) // 运行实例被移除
+                    && !isReconnectedRegistryCenter()) { //
                 schedulerFacade.shutdownInstance();
             }
         }

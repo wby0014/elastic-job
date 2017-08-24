@@ -81,7 +81,8 @@ public final class LeaderService {
      * @return 当前节点是否是主节点
      */
     public boolean isLeader() {
-        return !JobRegistry.getInstance().isShutdown(jobName) && JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId().equals(jobNodeStorage.getJobNodeData(LeaderNode.INSTANCE));
+        return !JobRegistry.getInstance().isShutdown(jobName)
+                && JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId().equals(jobNodeStorage.getJobNodeData(LeaderNode.INSTANCE));
     }
     
     /**
@@ -105,7 +106,7 @@ public final class LeaderService {
         
         @Override
         public void execute() {
-            if (!hasLeader()) {
+            if (!hasLeader()) { // 当前无主节点
                 jobNodeStorage.fillEphemeralJobNode(LeaderNode.INSTANCE, JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId());
             }
         }

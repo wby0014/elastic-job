@@ -35,7 +35,7 @@ public final class LeaderNode {
     
     static final String INSTANCE = ELECTION_ROOT + "/instance";
     
-    static final String LATCH = ELECTION_ROOT + "/latch";
+    static final String  LATCH = ELECTION_ROOT + "/latch";
     
     private final JobNodePath jobNodePath;
     

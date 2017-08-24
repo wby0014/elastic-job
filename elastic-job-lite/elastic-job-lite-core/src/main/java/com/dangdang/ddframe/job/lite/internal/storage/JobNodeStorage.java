@@ -180,7 +180,7 @@ public final class JobNodeStorage {
     /**
      * 在主节点执行操作.
      * 
-     * @param latchNode 分布式锁使用的作业节点名称
+     * @param latchNode 分布式锁使用的节点，例如：leader/election/latch
      * @param callback 执行操作的回调
      */
     public void executeInLeader(final String latchNode, final LeaderExecutionCallback callback) {

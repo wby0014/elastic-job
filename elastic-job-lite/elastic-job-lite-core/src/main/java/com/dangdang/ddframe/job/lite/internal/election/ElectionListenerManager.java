@@ -63,16 +63,25 @@ public final class ElectionListenerManager extends AbstractListenerManager {
         @Override
         protected void dataChanged(final String path, final Type eventType, final String data) {
             if (!JobRegistry.getInstance().isShutdown(jobName) && (isActiveElection(path, data) || isPassiveElection(path, eventType))) {
+                if (true) {
+                    System.out.println("path：" + path);
+                    System.out.println("eventType：" + eventType);
+                    System.out.println("data：" + data);
+                    System.out.println("isActiveElection：" + isActiveElection(path, data));
+                    System.out.println("isPassiveElection：" + isPassiveElection(path, eventType));
+                }
                 leaderService.electLeader();
             }
         }
         
         private boolean isActiveElection(final String path, final String data) {
-            return !leaderService.hasLeader() && isLocalServerEnabled(path, data);
+            return !leaderService.hasLeader() // 不存在主节点
+                    && isLocalServerEnabled(path, data); // 开启作业
         }
         
         private boolean isPassiveElection(final String path, final Type eventType) {
-            return isLeaderCrashed(path, eventType) && serverService.isAvailableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp());
+            return isLeaderCrashed(path, eventType) // 主节点 Crashed
+                    && serverService.isAvailableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp()); // 当前节点正在运行中（未挂掉）
         }
         
         private boolean isLeaderCrashed(final String path, final Type eventType) {
