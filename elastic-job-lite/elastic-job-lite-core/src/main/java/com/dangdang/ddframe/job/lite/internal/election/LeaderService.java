@@ -65,13 +65,16 @@ public final class LeaderService {
      * @return 当前节点是否是主节点
      */
     public boolean isLeaderUntilBlock() {
+        // 不存在主节点 && 有可用的服务器节点
         while (!hasLeader() && serverService.hasAvailableServers()) {
             log.info("Leader is electing, waiting for {} ms", 100);
             BlockUtils.waitingShortTime();
-            if (!JobRegistry.getInstance().isShutdown(jobName) && serverService.isAvailableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp())) {
+            if (!JobRegistry.getInstance().isShutdown(jobName)
+                    && serverService.isAvailableServer(JobRegistry.getInstance().getJobInstance(jobName).getIp())) { // 当前服务器节点可用
                 electLeader();
             }
         }
+        // 返回当前节点是否是主节点
         return isLeader();
     }
     

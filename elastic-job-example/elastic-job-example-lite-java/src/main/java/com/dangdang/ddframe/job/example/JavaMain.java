@@ -26,6 +26,7 @@ import com.dangdang.ddframe.job.event.rdb.JobEventRdbConfiguration;
 import com.dangdang.ddframe.job.example.job.dataflow.JavaDataflowJob;
 import com.dangdang.ddframe.job.example.job.simple.JavaSimpleJob;
 import com.dangdang.ddframe.job.lite.api.JobScheduler;
+import com.dangdang.ddframe.job.lite.api.strategy.impl.OdevitySortByNameJobShardingStrategy;
 import com.dangdang.ddframe.job.lite.config.LiteJobConfiguration;
 import com.dangdang.ddframe.job.reg.base.CoordinatorRegistryCenter;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperConfiguration;
@@ -98,7 +99,9 @@ public final class JavaMain {
 //        JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaSimpleJob", "0 0/5 * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou")
                 .failover(true).build();
         SimpleJobConfiguration simpleJobConfig = new SimpleJobConfiguration(coreConfig, JavaSimpleJob.class.getCanonicalName());
-        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(true).overwrite(true).disabled(true).build(), jobEventConfig).init(); // todo monitorExecution / overwrite
+        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(true).overwrite(true).disabled(false)
+                .jobShardingStrategyClass(OdevitySortByNameJobShardingStrategy.class.getCanonicalName())
+                .build(), jobEventConfig).init(); // todo monitorExecution / overwrite
     }
     
     private static void setUpDataflowJob(final CoordinatorRegistryCenter regCenter, final JobEventConfiguration jobEventConfig) {

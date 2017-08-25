@@ -52,15 +52,18 @@ public final class ShutdownListenerManager extends AbstractListenerManager {
         addDataListener(new InstanceShutdownStatusJobListener());
     }
 
-    // TODO 芋艿：触发情况？？？
+    /**
+     * 运行实例远程关闭
+     * 例如：console 发起 “shutdown” 操作
+     */
     class InstanceShutdownStatusJobListener extends AbstractJobListener {
         
         @Override
         protected void dataChanged(final String path, final Type eventType, final String data) {
             if (!JobRegistry.getInstance().isShutdown(jobName)
                     && !JobRegistry.getInstance().getJobScheduleController(jobName).isPaused() // 作业未暂停调度
-                    && isRemoveInstance(path, eventType) // 运行实例被移除
-                    && !isReconnectedRegistryCenter()) { //
+                    && isRemoveInstance(path, eventType) // 移除【运行实例】事件
+                    && !isReconnectedRegistryCenter()) { // 运行实例被移除
                 schedulerFacade.shutdownInstance();
             }
         }

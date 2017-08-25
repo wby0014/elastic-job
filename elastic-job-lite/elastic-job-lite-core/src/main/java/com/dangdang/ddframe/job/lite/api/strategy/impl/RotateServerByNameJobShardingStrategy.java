@@ -40,7 +40,7 @@ public final class RotateServerByNameJobShardingStrategy implements JobShardingS
     
     private List<JobInstance> rotateServerList(final List<JobInstance> shardingUnits, final String jobName) {
         int shardingUnitsSize = shardingUnits.size();
-        int offset = Math.abs(jobName.hashCode()) % shardingUnitsSize;
+        int offset = Math.abs(jobName.hashCode()) % shardingUnitsSize; // 轮转开始位置
         if (0 == offset) {
             return shardingUnits;
         }
