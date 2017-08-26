@@ -60,14 +60,20 @@ public final class ExecutionContextService {
      */
     public ShardingContexts getJobShardingContext(final List<Integer> shardingItems) {
         LiteJobConfiguration liteJobConfig = configService.load(false);
+        // 移除 正在运行中的作业分片项
         removeRunningIfMonitorExecution(liteJobConfig.isMonitorExecution(), shardingItems);
+        //
         if (shardingItems.isEmpty()) {
             return new ShardingContexts(buildTaskId(liteJobConfig, shardingItems), liteJobConfig.getJobName(), liteJobConfig.getTypeConfig().getCoreConfig().getShardingTotalCount(), 
                     liteJobConfig.getTypeConfig().getCoreConfig().getJobParameter(), Collections.<Integer, String>emptyMap());
         }
+        // 解析分片参数
         Map<Integer, String> shardingItemParameterMap = new ShardingItemParameters(liteJobConfig.getTypeConfig().getCoreConfig().getShardingItemParameters()).getMap();
-        return new ShardingContexts(buildTaskId(liteJobConfig, shardingItems), liteJobConfig.getJobName(), liteJobConfig.getTypeConfig().getCoreConfig().getShardingTotalCount(), 
-                liteJobConfig.getTypeConfig().getCoreConfig().getJobParameter(), getAssignedShardingItemParameterMap(shardingItems, shardingItemParameterMap));
+        // 创建 分片上下文集合
+        return new ShardingContexts(buildTaskId(liteJobConfig, shardingItems), //
+                liteJobConfig.getJobName(), liteJobConfig.getTypeConfig().getCoreConfig().getShardingTotalCount(),
+                liteJobConfig.getTypeConfig().getCoreConfig().getJobParameter(),
+                getAssignedShardingItemParameterMap(shardingItems, shardingItemParameterMap)); // 获得当前作业节点的分片参数
     }
     
     private String buildTaskId(final LiteJobConfiguration liteJobConfig, final List<Integer> shardingItems) {
@@ -83,7 +89,7 @@ public final class ExecutionContextService {
         List<Integer> runningShardingItems = new ArrayList<>(shardingItems.size());
         for (int each : shardingItems) {
             if (isRunning(each)) {
-                runningShardingItems.add(each);
+                runningShardingItems.add(each); // /${JOB_NAME}/sharding/${ITEM_ID}/running
             }
         }
         shardingItems.removeAll(runningShardingItems);

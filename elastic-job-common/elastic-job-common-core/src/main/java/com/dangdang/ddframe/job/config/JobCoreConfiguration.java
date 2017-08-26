@@ -37,7 +37,9 @@ public final class JobCoreConfiguration {
     private final String jobName;
     
     private final String cron;
-    
+    /**
+     * 作业分片总数
+     */
     private final int shardingTotalCount;
     
     private final String shardingItemParameters;

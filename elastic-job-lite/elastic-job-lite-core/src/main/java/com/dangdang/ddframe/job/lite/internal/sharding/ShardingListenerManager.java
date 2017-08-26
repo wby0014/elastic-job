@@ -58,26 +58,37 @@ public final class ShardingListenerManager extends AbstractListenerManager {
         addDataListener(new ShardingTotalCountChangedJobListener());
         addDataListener(new ListenServersChangedJobListener());
     }
-    
+
+    /**
+     * 作业分片总数变化监听器
+     */
     class ShardingTotalCountChangedJobListener extends AbstractJobListener {
         
         @Override
         protected void dataChanged(final String path, final Type eventType, final String data) {
-            if (configNode.isConfigPath(path) && 0 != JobRegistry.getInstance().getCurrentShardingTotalCount(jobName)) {
+            if (configNode.isConfigPath(path)
+                    && 0 != JobRegistry.getInstance().getCurrentShardingTotalCount(jobName)) {
                 int newShardingTotalCount = LiteJobConfigurationGsonFactory.fromJson(data).getTypeConfig().getCoreConfig().getShardingTotalCount();
-                if (newShardingTotalCount != JobRegistry.getInstance().getCurrentShardingTotalCount(jobName)) {
+                if (newShardingTotalCount != JobRegistry.getInstance().getCurrentShardingTotalCount(jobName)) { // 作业分片总数变化
+                    // 设置需要重新分片的标记
                     shardingService.setReshardingFlag();
+                    // 设置当前分片总数
                     JobRegistry.getInstance().setCurrentShardingTotalCount(jobName, newShardingTotalCount);
                 }
             }
         }
     }
-    
+
+    /**
+     * 服务器变化监听器
+     */
     class ListenServersChangedJobListener extends AbstractJobListener {
-        
+
         @Override
         protected void dataChanged(final String path, final Type eventType, final String data) {
-            if (!JobRegistry.getInstance().isShutdown(jobName) && (isInstanceChange(eventType, path) || isServerChange(path))) {
+            if (!JobRegistry.getInstance().isShutdown(jobName)
+                    && (isInstanceChange(eventType, path)
+                        || isServerChange(path))) {
                 shardingService.setReshardingFlag();
             }
         }

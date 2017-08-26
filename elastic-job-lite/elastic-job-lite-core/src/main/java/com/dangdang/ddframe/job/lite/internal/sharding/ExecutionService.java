@@ -194,6 +194,7 @@ public final class ExecutionService {
     public List<Integer> getDisabledItems(final List<Integer> items) {
         List<Integer> result = new ArrayList<>(items.size());
         for (int each : items) {
+            // /${JOB_NAME}/sharding/${ITEM_ID}/disabled
             if (jobNodeStorage.isJobNodeExisted(ShardingNode.getDisabledNode(each))) {
                 result.add(each);
             }
