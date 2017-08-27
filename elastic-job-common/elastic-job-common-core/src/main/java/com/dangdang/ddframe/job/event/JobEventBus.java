@@ -30,13 +30,22 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public final class JobEventBus {
-    
+
+    /**
+     * 作业事件配置
+     */
     private final JobEventConfiguration jobEventConfig;
-    
+    /**
+     * 线程池执行服务对象
+     */
     private final ExecutorServiceObject executorServiceObject;
-    
+    /**
+     * 事件总线
+     */
     private final EventBus eventBus;
-    
+    /**
+     * 是否注册作业监听器
+     */
     private boolean isRegistered;
     
     public JobEventBus() {
@@ -48,7 +57,9 @@ public final class JobEventBus {
     public JobEventBus(final JobEventConfiguration jobEventConfig) {
         this.jobEventConfig = jobEventConfig;
         executorServiceObject = new ExecutorServiceObject("job-event", Runtime.getRuntime().availableProcessors() * 2);
+        // 创建 异步事件总线
         eventBus = new AsyncEventBus(executorServiceObject.createExecutorService());
+        // 注册 事件监听器
         register();
     }
     

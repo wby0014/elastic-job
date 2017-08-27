@@ -50,16 +50,16 @@ public final class JavaMain {
     private static final String JOB_NAMESPACE = "elastic-job-example-lite-java";
     
     // switch to MySQL by yourself
-//    private static final String EVENT_RDB_STORAGE_DRIVER = "com.mysql.jdbc.Driver";
-//    private static final String EVENT_RDB_STORAGE_URL = "jdbc:mysql://localhost:3306/elastic_job_log";
+    private static final String EVENT_RDB_STORAGE_DRIVER = "com.mysql.jdbc.Driver";
+    private static final String EVENT_RDB_STORAGE_URL = "jdbc:mysql://127.0.0.1:33061/db1";
     
-    private static final String EVENT_RDB_STORAGE_DRIVER = "org.h2.Driver";
+//    private static final String EVENT_RDB_STORAGE_DRIVER = "org.h2.Driver";
     
-    private static final String EVENT_RDB_STORAGE_URL = "jdbc:h2:mem:job_event_storage";
+//    private static final String EVENT_RDB_STORAGE_URL = "jdbc:h2:mem:job_event_storage";
     
-    private static final String EVENT_RDB_STORAGE_USERNAME = "sa";
+    private static final String EVENT_RDB_STORAGE_USERNAME = "root";
     
-    private static final String EVENT_RDB_STORAGE_PASSWORD = "";
+    private static final String EVENT_RDB_STORAGE_PASSWORD = "123456";
     
     // CHECKSTYLE:OFF
     public static void main(final String[] args) throws IOException {
@@ -95,11 +95,11 @@ public final class JavaMain {
     }
     
     private static void setUpSimpleJob(final CoordinatorRegistryCenter regCenter, final JobEventConfiguration jobEventConfig) {
-        JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaSimpleJob", "0/5 * * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou")
-//        JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaSimpleJob", "0 0/5 * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou")
+//        JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaSimpleJob", "0/5 * * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou")
+        JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaSimpleJob", "0 0/2 * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou")
                 .failover(true).build();
         SimpleJobConfiguration simpleJobConfig = new SimpleJobConfiguration(coreConfig, JavaSimpleJob.class.getCanonicalName());
-        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(true).overwrite(true).disabled(false)
+        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(false).overwrite(true).disabled(false)
                 .jobShardingStrategyClass(OdevitySortByNameJobShardingStrategy.class.getCanonicalName())
                 .build(), jobEventConfig).init(); // todo monitorExecution / overwrite
     }

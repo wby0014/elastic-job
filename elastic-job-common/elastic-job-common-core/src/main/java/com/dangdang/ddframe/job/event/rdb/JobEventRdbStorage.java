@@ -149,12 +149,12 @@ final class JobEventRdbStorage {
     }
     
     boolean addJobExecutionEvent(final JobExecutionEvent jobExecutionEvent) {
-        if (null == jobExecutionEvent.getCompleteTime()) {
+        if (null == jobExecutionEvent.getCompleteTime()) { // 作业分片项执行开始
             return insertJobExecutionEvent(jobExecutionEvent);
         } else {
-            if (jobExecutionEvent.isSuccess()) {
+            if (jobExecutionEvent.isSuccess()) { // 作业分片项执行完成（正常）
                 return updateJobExecutionEventWhenSuccess(jobExecutionEvent);
-            } else {
+            } else { // 作业分片项执行完成（异常）
                 return updateJobExecutionEventFailure(jobExecutionEvent);
             }
         }

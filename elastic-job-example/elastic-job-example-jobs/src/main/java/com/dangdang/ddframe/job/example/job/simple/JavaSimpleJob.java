@@ -41,10 +41,10 @@ public class JavaSimpleJob implements SimpleJob {
 //        for (Foo each : data) {
 //            fooRepository.setCompleted(each.getId());
 //        }
-        try {
-            Thread.sleep(70 * 1000L);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(70 * 1000L);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
     }
 }

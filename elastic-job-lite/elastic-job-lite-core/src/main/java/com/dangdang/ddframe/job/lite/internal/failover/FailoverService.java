@@ -162,6 +162,7 @@ public final class FailoverService {
             JobScheduleController jobScheduleController = JobRegistry.getInstance().getJobScheduleController(jobName);
             if (null != jobScheduleController) {
 //                System.out.println("现在事件：" + new Date());
+                System.out.println(String.format("item({%d}) time({%s}) triggerJob", crashedItem, new Date()));
                 jobScheduleController.triggerJob();
             }
         }

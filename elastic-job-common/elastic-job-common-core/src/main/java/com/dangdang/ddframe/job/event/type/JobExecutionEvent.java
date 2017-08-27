@@ -37,29 +37,52 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 public final class JobExecutionEvent implements JobEvent {
-    
+
+    /**
+     * 主键
+     */
     private String id = UUID.randomUUID().toString();
-    
+    /**
+     * 主机名称
+     */
     private String hostname = IpUtils.getHostName();
-    
+    /**
+     * IP
+     */
     private String ip = IpUtils.getIp();
-    
+    /**
+     * 作业任务ID
+     */
     private final String taskId;
-    
+    /**
+     * 作业名字
+     */
     private final String jobName;
-    
+    /**
+     * 执行来源
+     */
     private final ExecutionSource source;
-    
+    /**
+     * 作业分片项
+     */
     private final int shardingItem;
-    
+    /**
+     * 开始时间
+     */
     private Date startTime = new Date();
-    
+    /**
+     * 结束时间
+     */
     @Setter
     private Date completeTime;
-    
+    /**
+     * 是否执行成功
+     */
     @Setter
     private boolean success;
-    
+    /**
+     * 执行失败原因
+     */
     @Setter
     private JobExecutionEventThrowable failureCause;
     
