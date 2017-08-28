@@ -55,7 +55,7 @@ public final class FailoverService {
      */
     public void setCrashedFailoverFlag(final int item) {
         if (!isFailoverAssigned(item)) {
-            jobNodeStorage.createJobNodeIfNeeded(FailoverNode.getItemsNode(item)); // todo: leader/failover/items/${item}
+            jobNodeStorage.createJobNodeIfNeeded(FailoverNode.getItemsNode(item)); // /${JOB_NAME}/leader/failover/items/${ITEM_ID}
         }
     }
     
@@ -72,9 +72,10 @@ public final class FailoverService {
         }
     }
 
-    // todo 芋艿：有失效节点目录 && 有失效节点 && 本地jobName 不在运行中
     private boolean needFailover() {
+                // `${JOB_NAME}/leader/failover/items/${ITEM_ID}` 有失效转移的作业分片项
         return jobNodeStorage.isJobNodeExisted(FailoverNode.ITEMS_ROOT) && !jobNodeStorage.getJobNodeChildrenKeys(FailoverNode.ITEMS_ROOT).isEmpty()
+                // 当前作业不在运行中
                 && !JobRegistry.getInstance().isJobRunning(jobName);
     }
     
@@ -100,7 +101,7 @@ public final class FailoverService {
         List<Integer> result = new ArrayList<>(items.size());
         for (String each : items) {
             int item = Integer.parseInt(each);
-            String node = FailoverNode.getExecutionFailoverNode(item); // todo: sharding/${item}/failover
+            String node = FailoverNode.getExecutionFailoverNode(item); // `${JOB_NAME}/sharding/${ITEM_ID}/failover`
             if (jobNodeStorage.isJobNodeExisted(node) && jobInstanceId.equals(jobNodeStorage.getJobNodeDataDirectly(node))) {
                 result.add(item);
             }
@@ -118,7 +119,7 @@ public final class FailoverService {
         if (JobRegistry.getInstance().isShutdown(jobName)) {
             return Collections.emptyList();
         }
-        return getFailoverItems(JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId());
+        return getFailoverItems(JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId()); // `${JOB_NAME}/sharding/${ITEM_ID}/failover`
     }
     
     /**
@@ -150,15 +151,19 @@ public final class FailoverService {
         
         @Override
         public void execute() {
+            // 判断需要失效转移
             if (JobRegistry.getInstance().isShutdown(jobName) || !needFailover()) {
                 return;
             }
+            // 获得一个 `${JOB_NAME}/leader/failover/items/${ITEM_ID}` 作业分片项
             int crashedItem = Integer.parseInt(jobNodeStorage.getJobNodeChildrenKeys(FailoverNode.ITEMS_ROOT).get(0));
             log.debug("Failover job '{}' begin, crashed item '{}'", jobName, crashedItem);
+            // 设置这个 `${JOB_NAME}/sharding/${ITEM_ID}failover` 作业分片项 为 当前作业节点
             jobNodeStorage.fillEphemeralJobNode(FailoverNode.getExecutionFailoverNode(crashedItem), JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId());
+            // 移除这个 `${JOB_NAME}/leader/failover/items/${ITEM_ID}` 作业分片项
             jobNodeStorage.removeJobNodeIfExisted(FailoverNode.getItemsNode(crashedItem));
-            // TODO 不应使用triggerJob, 而是使用executor统一调度
-            // todo 疑问：为什么要用executor统一，后面研究下
+            // TODO 不应使用triggerJob, 而是使用executor统一调度 疑问：为什么要用executor统一，后面研究下
+            // 触发作业执行
             JobScheduleController jobScheduleController = JobRegistry.getInstance().getJobScheduleController(jobName);
             if (null != jobScheduleController) {
 //                System.out.println("现在事件：" + new Date());

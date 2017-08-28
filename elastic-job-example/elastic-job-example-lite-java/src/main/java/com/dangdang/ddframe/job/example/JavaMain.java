@@ -101,7 +101,7 @@ public final class JavaMain {
         SimpleJobConfiguration simpleJobConfig = new SimpleJobConfiguration(coreConfig, JavaSimpleJob.class.getCanonicalName());
         new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(false).overwrite(true).disabled(false)
                 .jobShardingStrategyClass(OdevitySortByNameJobShardingStrategy.class.getCanonicalName())
-                .monitorPort(10024)
+//                .monitorPort(10024)
                 .build(), jobEventConfig).init(); // todo monitorExecution / overwrite
     }
     

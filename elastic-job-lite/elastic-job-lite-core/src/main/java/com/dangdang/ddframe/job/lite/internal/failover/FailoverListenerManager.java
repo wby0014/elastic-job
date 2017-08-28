@@ -75,20 +75,25 @@ public final class FailoverListenerManager extends AbstractListenerManager {
         
         @Override
         protected void dataChanged(final String path, final Type eventType, final String data) {
-            if (isFailoverEnabled() && Type.NODE_REMOVED == eventType && instanceNode.isInstancePath(path)) { // todo 记录：/instances/${instance_id}移除
+            if (isFailoverEnabled() && Type.NODE_REMOVED == eventType
+                    && instanceNode.isInstancePath(path)) { // /${JOB_NAME}/instances/${INSTANCE_ID}
+//                System.out.println("被移除1：" + new Date());
                 String jobInstanceId = path.substring(instanceNode.getInstanceFullPath().length() + 1);
                 if (jobInstanceId.equals(JobRegistry.getInstance().getJobInstance(jobName).getJobInstanceId())) {
                     return;
                 }
-                List<Integer> failoverItems = failoverService.getFailoverItems(jobInstanceId); // todo: sharding/${item}/failover
+//                System.out.println("被移除2：" + new Date());
+                List<Integer> failoverItems = failoverService.getFailoverItems(jobInstanceId); // /${JOB_NAME}/sharding/${ITEM_ID}/failover
                 if (!failoverItems.isEmpty()) {
+//                    System.out.println("被移除3-1：" + new Date());
                     for (int each : failoverItems) {
                         failoverService.setCrashedFailoverFlag(each);
                         failoverService.failoverIfNecessary();
                     }
                 } else {
-                    for (int each : shardingService.getShardingItems(jobInstanceId)) { // todo: sharding/${item}/instance
-                        failoverService.setCrashedFailoverFlag(each); // TODO 可能性：如果有两个节点都在处理这个，A已经标记 failover，B可能重复去标记，执行。
+//                    System.out.println("被移除3-2：" + new Date() + ":" + shardingService.getShardingItems(jobInstanceId).size());
+                    for (int each : shardingService.getShardingItems(jobInstanceId)) { // /${JOB_NAME}/sharding/${ITEM_ID}/instance
+                        failoverService.setCrashedFailoverFlag(each);
                         failoverService.failoverIfNecessary();
                     }
                 }
@@ -100,7 +105,8 @@ public final class FailoverListenerManager extends AbstractListenerManager {
         
         @Override
         protected void dataChanged(final String path, final Type eventType, final String data) {
-            if (configNode.isConfigPath(path) && Type.NODE_UPDATED == eventType && !LiteJobConfigurationGsonFactory.fromJson(data).isFailover()) {
+            if (configNode.isConfigPath(path) && Type.NODE_UPDATED == eventType
+                    && !LiteJobConfigurationGsonFactory.fromJson(data).isFailover()) { // 关闭失效转移功能
                 failoverService.removeFailoverInfo();
             }
         }

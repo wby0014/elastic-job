@@ -31,7 +31,7 @@ public class JavaSimpleJob implements SimpleJob {
     
     @Override
     public void execute(final ShardingContext shardingContext) {
-        System.out.println(String.format("Item: %s | Time: %s | Thread: %s | ShardingParameter: %s | %s",
+        System.out.println(String.format("Item: %s | Time: %s | Thread: %s | ShardingParameter: %s | %s 开始",
                 shardingContext.getShardingItem(), new SimpleDateFormat("HH:mm:ss").format(new Date()), Thread.currentThread().getId(),
                 shardingContext.getShardingParameter(), "SIMPLE"));
 //        if (true) {
@@ -41,10 +41,13 @@ public class JavaSimpleJob implements SimpleJob {
 //        for (Foo each : data) {
 //            fooRepository.setCompleted(each.getId());
 //        }
-//        try {
-//            Thread.sleep(70 * 1000L);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            Thread.sleep(60 * 1000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println(String.format("Item: %s | Time: %s | Thread: %s | ShardingParameter: %s | %s 完成",
+                shardingContext.getShardingItem(), new SimpleDateFormat("HH:mm:ss").format(new Date()), Thread.currentThread().getId(),
+                shardingContext.getShardingParameter(), "SIMPLE"));
     }
 }
