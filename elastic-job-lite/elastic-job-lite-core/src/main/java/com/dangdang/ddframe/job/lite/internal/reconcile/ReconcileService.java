@@ -49,15 +49,19 @@ public final class ReconcileService extends AbstractScheduledService {
         shardingService = new ShardingService(regCenter, jobName);
         leaderService = new LeaderService(regCenter, jobName);
     }
-    
+
     @Override
     protected void runOneIteration() throws Exception {
         LiteJobConfiguration config = configService.load(true);
         int reconcileIntervalMinutes = null == config ? -1 : config.getReconcileIntervalMinutes();
-        if (reconcileIntervalMinutes > 0 && (System.currentTimeMillis() - lastReconcileTime >= reconcileIntervalMinutes * 60 * 1000)) {
+        if (reconcileIntervalMinutes > 0 && (System.currentTimeMillis() - lastReconcileTime >= reconcileIntervalMinutes * 60 * 1000)) { // 校验是否达到校验周期
+            // 设置最后校验时间
             lastReconcileTime = System.currentTimeMillis();
-            if (leaderService.isLeaderUntilBlock() && !shardingService.isNeedSharding() && shardingService.hasShardingInfoInOfflineServers()) {
+            if (leaderService.isLeaderUntilBlock() // 主作业节点才可以执行
+                    && !shardingService.isNeedSharding() // 当前作业不需要重新分片
+                    && shardingService.hasShardingInfoInOfflineServers()) { // 查询是包含有分片节点的不在线服务器
                 log.warn("Elastic Job: job status node has inconsistent value,start reconciling...");
+                // 设置需要重新分片的标记
                 shardingService.setReshardingFlag();
             }
         }

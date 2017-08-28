@@ -101,13 +101,16 @@ public final class JavaMain {
         SimpleJobConfiguration simpleJobConfig = new SimpleJobConfiguration(coreConfig, JavaSimpleJob.class.getCanonicalName());
         new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(simpleJobConfig).monitorExecution(false).overwrite(true).disabled(false)
                 .jobShardingStrategyClass(OdevitySortByNameJobShardingStrategy.class.getCanonicalName())
+                .monitorPort(10024)
                 .build(), jobEventConfig).init(); // todo monitorExecution / overwrite
     }
     
     private static void setUpDataflowJob(final CoordinatorRegistryCenter regCenter, final JobEventConfiguration jobEventConfig) {
         JobCoreConfiguration coreConfig = JobCoreConfiguration.newBuilder("javaDataflowElasticJob", "0/5 * * * * ?", 3).shardingItemParameters("0=Beijing,1=Shanghai,2=Guangzhou").build();
         DataflowJobConfiguration dataflowJobConfig = new DataflowJobConfiguration(coreConfig, JavaDataflowJob.class.getCanonicalName(), true);
-        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(dataflowJobConfig).build(), jobEventConfig).init();
+        new JobScheduler(regCenter, LiteJobConfiguration.newBuilder(dataflowJobConfig)
+//                .monitorPort(10024)
+                .build(), jobEventConfig).init();
     }
     
     private static void setUpScriptJob(final CoordinatorRegistryCenter regCenter, final JobEventConfiguration jobEventConfig) throws IOException {

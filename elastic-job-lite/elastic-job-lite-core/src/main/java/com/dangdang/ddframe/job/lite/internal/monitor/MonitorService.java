@@ -99,8 +99,9 @@ public final class MonitorService {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                 Socket autoCloseSocket = socket) {
+            // 读取命令
             String cmdLine = reader.readLine();
-            if (null != cmdLine && DUMP_COMMAND.equalsIgnoreCase(cmdLine)) {
+            if (null != cmdLine && DUMP_COMMAND.equalsIgnoreCase(cmdLine)) { // DUMP
                 List<String> result = new ArrayList<>();
                 dumpDirectly("/" + jobName, result);
                 outputMessage(writer, Joiner.on("\n").join(SensitiveInfoUtils.filterSensitiveIps(result)) + "\n");
@@ -119,11 +120,13 @@ public final class MonitorService {
             ChildData treeCacheData = treeCache.getCurrentData(zkPath);
             String treeCachePath =  null == treeCacheData ? "" : treeCacheData.getPath();
             String treeCacheValue = null == treeCacheData ? "" : new String(treeCacheData.getData());
+            // 判断 TreeCache缓存 和 注册中心 数据一致
             if (zkValue.equals(treeCacheValue) && zkPath.equals(treeCachePath)) {
                 result.add(Joiner.on(" | ").join(zkPath, zkValue));
             } else {
                 result.add(Joiner.on(" | ").join(zkPath, zkValue, treeCachePath, treeCacheValue));
             }
+            // 递归
             dumpDirectly(zkPath, result);
         }
     }
