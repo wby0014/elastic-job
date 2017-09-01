@@ -118,6 +118,7 @@ public final class TaskExecutor implements Executor {
         @Override
         public void run() {
             executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskInfo.getTaskId()).setState(Protos.TaskState.TASK_RUNNING).build());
+
             Map<String, Object> data = SerializationUtils.deserialize(taskInfo.getData().toByteArray());
             ShardingContexts shardingContexts = (ShardingContexts) data.get("shardingContext");
             @SuppressWarnings("unchecked")
@@ -127,6 +128,7 @@ public final class TaskExecutor implements Executor {
                 final CloudJobFacade jobFacade = new CloudJobFacade(shardingContexts, jobConfig, jobEventBus);
                 if (jobConfig.isTransient()) {
                     JobExecutorFactory.getJobExecutor(elasticJob, jobFacade).execute();
+
                     executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskInfo.getTaskId()).setState(Protos.TaskState.TASK_FINISHED).build());
                 } else {
                     new DaemonTaskScheduler(elasticJob, jobConfig, jobFacade, executorDriver, taskInfo.getTaskId()).init();

@@ -102,7 +102,9 @@ public final class ProducerManager {
         if (jobConfigFromZk.isPresent()) {
             throw new JobConfigurationException("Job '%s' already existed.", jobConfig.getJobName());
         }
+        // 添加云作业配置
         configService.add(jobConfig);
+        // 调度作业
         schedule(jobConfig);
     }
     

@@ -32,18 +32,37 @@ import lombok.ToString;
 @Getter
 @ToString
 public final class CloudAppConfiguration {
-    
+
+    /**
+     * 应用名
+     */
     private final String appName;
-    
+    /**
+     * 应用包地址
+     */
     private final String appURL;
-    
+    /**
+     * 应用启动脚本
+     */
     private final String bootstrapScript;
-    
+    /**
+     * cpu 数量
+     * // TODO 芋艿：多jvm，怎么限制资源
+     */
     private double cpuCount = 1;
-    
+    /**
+     * 内存 大小
+     */
     private double memoryMB = 128;
-    
+    /**
+     * 每次执行作业时是否从缓存中读取应用。禁用则每次执行任务均从应用仓库下载应用至本地
+     * TODO 芋艿：看看实现
+     */
     private boolean appCacheEnable = true;
-    
+    /**
+     * 常驻作业事件采样率统计条数，默认不采样全部记录。
+     * 为避免数据量过大，可对频繁调度的常驻作业配置采样率，即作业每执行N次，才会记录作业执行及追踪相关数据
+     * TODO 芋艿：看看实现
+     */
     private int eventTraceSamplingCount;
 }

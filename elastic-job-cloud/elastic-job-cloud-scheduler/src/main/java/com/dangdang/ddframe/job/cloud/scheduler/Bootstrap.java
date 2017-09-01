@@ -47,6 +47,9 @@ public final class Bootstrap {
      */
     // CHECKSTYLE:OFF
     public static void main(final String[] args) throws InterruptedException {
+        BootstrapEnvironment.getInstance().getZookeeperConfiguration().setSessionTimeoutMilliseconds(Integer.MAX_VALUE);
+        BootstrapEnvironment.getInstance().getZookeeperConfiguration().setConnectionTimeoutMilliseconds(Integer.MAX_VALUE);
+
         // CHECKSTYLE:ON
         CoordinatorRegistryCenter regCenter = new ZookeeperRegistryCenter(BootstrapEnvironment.getInstance().getZookeeperConfiguration());
         regCenter.init();

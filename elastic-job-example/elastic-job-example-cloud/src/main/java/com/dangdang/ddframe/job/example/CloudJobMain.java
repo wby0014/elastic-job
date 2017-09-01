@@ -24,6 +24,7 @@ public final class CloudJobMain {
     // CHECKSTYLE:OFF
     public static void main(final String[] args) {
     // CHECKSTYLE:ON
+//        System.setProperty("MESOS_SLAVE_PID", "10122");
         JobBootstrap.execute();
     }
 }

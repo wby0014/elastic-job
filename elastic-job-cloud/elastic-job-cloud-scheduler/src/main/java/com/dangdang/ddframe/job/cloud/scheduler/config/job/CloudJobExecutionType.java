@@ -23,6 +23,13 @@ package com.dangdang.ddframe.job.cloud.scheduler.config.job;
  * @author zhangliang
  */
 public enum CloudJobExecutionType {
-    
-    DAEMON, TRANSIENT
+
+    /**
+     * 常驻作业
+     */
+    DAEMON,
+    /**
+     * 瞬时作业
+     */
+    TRANSIENT
 }

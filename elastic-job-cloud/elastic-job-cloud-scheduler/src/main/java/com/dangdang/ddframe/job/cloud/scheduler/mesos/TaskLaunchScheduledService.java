@@ -110,6 +110,7 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
                 AppConstraintEvaluator.getInstance().loadAppRunningState();
             }
             Collection<VMAssignmentResult> vmAssignmentResults = taskScheduler.scheduleOnce(taskRequests, LeasesQueue.getInstance().drainTo()).getResultMap().values();
+            //
             List<TaskContext> taskContextsList = new LinkedList<>();
             Map<List<Protos.OfferID>, List<Protos.TaskInfo>> offerIdTaskInfoMap = new HashMap<>();
             for (VMAssignmentResult each: vmAssignmentResults) {
@@ -121,11 +122,14 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
                 }
                 offerIdTaskInfoMap.put(getOfferIDs(leasesUsed), taskInfoList);
             }
+            //
             for (TaskContext each : taskContextsList) {
                 facadeService.addRunning(each);
                 jobEventBus.post(createJobStatusTraceEvent(each));
             }
+            //
             facadeService.removeLaunchTasksFromQueue(taskContextsList);
+            //
             for (Entry<List<OfferID>, List<TaskInfo>> each : offerIdTaskInfoMap.entrySet()) {
                 schedulerDriver.launchTasks(each.getKey(), each.getValue());
             }

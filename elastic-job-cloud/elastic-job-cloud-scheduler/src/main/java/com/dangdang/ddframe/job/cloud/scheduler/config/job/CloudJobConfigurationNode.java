@@ -30,7 +30,7 @@ public final class CloudJobConfigurationNode {
     
     public static final String ROOT =  "/config/job";
     
-    private static final String JOB_CONFIG =  ROOT + "/%s";
+    private static final String JOB_CONFIG =  ROOT + "/%s";  // %s = ${JOB_NAME}
     
     static String getRootNodePath(final String jobName) {
         return String.format(JOB_CONFIG, jobName);

@@ -34,7 +34,10 @@ import lombok.RequiredArgsConstructor;
 public final class LocalCloudJobConfiguration implements JobRootConfiguration {
     
     private final JobTypeConfiguration typeConfig;
-    
+
+    /**
+     * 分片作业序号
+     */
     private final int shardingItem;
     
     private String beanName;

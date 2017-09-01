@@ -32,19 +32,34 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @Getter
 public final class CloudJobConfiguration implements JobRootConfiguration {
-    
+
+    /**
+     * 作业应用名称 {@link com.dangdang.ddframe.job.cloud.scheduler.config.app.CloudAppConfiguration}
+     */
     private final String appName;
-    
+    /**
+     * 作业类型配置
+     */
     private final JobTypeConfiguration typeConfig;
-    
+    /**
+     * 单片作业所需要的CPU数量，最小值为0.001
+     */
     private final double cpuCount;
-    
+    /**
+     * 单片作业所需要的内存MB，最小值为1
+     */
     private final double memoryMB;
-    
+    /**
+     * 作业执行类型
+     */
     private final CloudJobExecutionType jobExecutionType;
-    
+    /**
+     * Spring容器中配置的bean名称
+     */
     private String beanName;
-    
+    /**
+     * Spring方式配置Spring配置文件相对路径以及名称，如：META-INF\applicationContext.xml
+     */
     private String applicationContext; 
     
     /**

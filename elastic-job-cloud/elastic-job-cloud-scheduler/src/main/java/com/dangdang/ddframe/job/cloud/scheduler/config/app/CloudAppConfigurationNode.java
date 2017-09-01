@@ -30,7 +30,7 @@ public final class CloudAppConfigurationNode {
     
     public static final String ROOT =  "/config/app";
     
-    private static final String APP_CONFIG =  ROOT + "/%s";
+    private static final String APP_CONFIG =  ROOT + "/%s"; // %s = ${APP_NAME}
     
     static String getRootNodePath(final String appName) {
         return String.format(APP_CONFIG, appName);
