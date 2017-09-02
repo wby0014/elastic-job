@@ -67,14 +67,17 @@ public final class ReadyService {
      * @param jobName 作业名称
      */
     public void addTransient(final String jobName) {
+        //
         if (regCenter.getNumChildren(ReadyNode.ROOT) > env.getFrameworkConfiguration().getJobStateQueueSize()) {
             log.warn("Cannot add transient job, caused by read state queue size is larger than {}.", env.getFrameworkConfiguration().getJobStateQueueSize());
             return;
         }
+        //
         Optional<CloudJobConfiguration> cloudJobConfig = configService.load(jobName);
         if (!cloudJobConfig.isPresent() || CloudJobExecutionType.TRANSIENT != cloudJobConfig.get().getJobExecutionType()) {
             return;
         }
+        //
         String readyJobNode = ReadyNode.getReadyJobNodePath(jobName);
         String times = regCenter.getDirectly(readyJobNode);
         if (cloudJobConfig.get().getTypeConfig().getCoreConfig().isMisfire()) {
@@ -98,6 +101,7 @@ public final class ReadyService {
         if (!cloudJobConfig.isPresent() || CloudJobExecutionType.DAEMON != cloudJobConfig.get().getJobExecutionType() || runningService.isJobRunning(jobName)) {
             return;
         }
+        // 添加到待执行队列
         regCenter.persist(ReadyNode.getReadyJobNodePath(jobName), "1");
     }
     

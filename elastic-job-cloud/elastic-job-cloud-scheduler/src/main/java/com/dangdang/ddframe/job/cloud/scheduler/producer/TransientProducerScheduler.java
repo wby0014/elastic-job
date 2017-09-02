@@ -80,7 +80,7 @@ final class TransientProducerScheduler {
     private Properties getQuartzProperties() {
         Properties result = new Properties();
         result.put("org.quartz.threadPool.class", SimpleThreadPool.class.getName());
-        result.put("org.quartz.threadPool.threadCount", Integer.toString(Runtime.getRuntime().availableProcessors() * 2));
+        result.put("org.quartz.threadPool.threadCount", Integer.toString(Runtime.getRuntime().availableProcessors() * 2)); // 线程池数量
         result.put("org.quartz.scheduler.instanceName", "ELASTIC_JOB_CLOUD_TRANSIENT_PRODUCER");
         result.put("org.quartz.plugin.shutdownhook.class", ShutdownHookPlugin.class.getName());
         result.put("org.quartz.plugin.shutdownhook.cleanShutdown", Boolean.TRUE.toString());
@@ -90,8 +90,10 @@ final class TransientProducerScheduler {
     // TODO 并发优化
     synchronized void register(final CloudJobConfiguration jobConfig) {
         String cron = jobConfig.getTypeConfig().getCoreConfig().getCron();
+        // 添加 cron 作业集合
         JobKey jobKey = buildJobKey(cron);
         repository.put(jobKey, jobConfig.getJobName());
+        // 调度 作业
         try {
             if (!scheduler.checkExists(jobKey)) {
                 scheduler.scheduleJob(buildJobDetail(jobKey), buildTrigger(jobKey.getName()));
@@ -102,14 +104,19 @@ final class TransientProducerScheduler {
     }
     
     private JobDetail buildJobDetail(final JobKey jobKey) {
-        JobDetail result = JobBuilder.newJob(ProducerJob.class).withIdentity(jobKey).build();
+        JobDetail result = JobBuilder.newJob(ProducerJob.class) // ProducerJob.java
+                .withIdentity(jobKey).build();
         result.getJobDataMap().put("repository", repository);
         result.getJobDataMap().put("readyService", readyService);
         return result;
     }
     
     private Trigger buildTrigger(final String cron) {
-        return TriggerBuilder.newTrigger().withIdentity(cron).withSchedule(CronScheduleBuilder.cronSchedule(cron).withMisfireHandlingInstructionDoNothing()).build();
+        return TriggerBuilder.newTrigger()
+                .withIdentity(cron)
+                .withSchedule(CronScheduleBuilder.cronSchedule(cron) // cron
+                .withMisfireHandlingInstructionDoNothing())
+                .build();
     }
     
     synchronized void deregister(final CloudJobConfiguration jobConfig) {

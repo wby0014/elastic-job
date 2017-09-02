@@ -31,7 +31,7 @@ final class ReadyNode {
     
     static final String ROOT = StateNode.ROOT + "/ready";
     
-    private static final String READY_JOB = ROOT + "/%s";
+    private static final String READY_JOB = ROOT + "/%s"; // %s = ${JOB_NAME}
     
     static String getReadyJobNodePath(final String jobName) {
         return String.format(READY_JOB, jobName);

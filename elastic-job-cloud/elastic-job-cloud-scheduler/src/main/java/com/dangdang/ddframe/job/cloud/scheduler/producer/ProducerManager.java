@@ -142,12 +142,13 @@ public final class ProducerManager {
      * @param jobConfig 作业配置
      */
     public void schedule(final CloudJobConfiguration jobConfig) {
+        // 应用 或 作业 被禁用，不调度
         if (disableAppService.isDisabled(jobConfig.getAppName()) || disableJobService.isDisabled(jobConfig.getJobName())) {
             return;
         }
-        if (CloudJobExecutionType.TRANSIENT == jobConfig.getJobExecutionType()) {
+        if (CloudJobExecutionType.TRANSIENT == jobConfig.getJobExecutionType()) { // 瞬时作业
             transientProducerScheduler.register(jobConfig);
-        } else if (CloudJobExecutionType.DAEMON == jobConfig.getJobExecutionType()) {
+        } else if (CloudJobExecutionType.DAEMON == jobConfig.getJobExecutionType()) { // 常驻作业
             readyService.addDaemon(jobConfig.getJobName());
         }
     }

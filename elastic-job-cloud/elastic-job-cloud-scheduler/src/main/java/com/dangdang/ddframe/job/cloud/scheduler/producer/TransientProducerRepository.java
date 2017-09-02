@@ -32,7 +32,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author zhangliang
  */
 final class TransientProducerRepository {
-    
+
+    /**
+     * cron 作业集合
+     * key：作业Key
+     */
     private final ConcurrentHashMap<JobKey, List<String>> cronTasks = new ConcurrentHashMap<>(256, 1);
     
     synchronized void put(final JobKey jobKey, final String jobName) {
