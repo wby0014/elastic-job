@@ -76,6 +76,7 @@ public final class SchedulerService {
         facadeService = new FacadeService(regCenter);
         statisticManager = StatisticManager.getInstance(regCenter, env.getJobEventRdbConfiguration());
         TaskScheduler taskScheduler = getTaskScheduler();
+//        TaskScheduler taskScheduler = null;
         JobEventBus jobEventBus = getJobEventBus();
         schedulerDriver = getSchedulerDriver(taskScheduler, jobEventBus, new FrameworkIDService(regCenter));
         producerManager = new ProducerManager(schedulerDriver, regCenter);

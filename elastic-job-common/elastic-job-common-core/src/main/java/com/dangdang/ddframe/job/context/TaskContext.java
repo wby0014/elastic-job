@@ -46,15 +46,26 @@ public final class TaskContext {
     private static final String DELIMITER = "@-@";
     
     private static final String UNASSIGNED_SLAVE_ID = "unassigned-slave";
-    
+
+    /**
+     * 任务编号
+     */
     private String id;
-    
+    /**
+     * 任务元信息
+     */
     private final MetaInfo metaInfo;
-    
+    /**
+     * 执行类型
+     */
     private final ExecutionType type;
-    
+    /**
+     * Mesos Slave 编号
+     */
     private String slaveId;
-    
+    /**
+     * 是否闲置
+     */
     @Setter
     private boolean idle;
     
@@ -134,9 +145,14 @@ public final class TaskContext {
     @Getter
     @EqualsAndHashCode
     public static class MetaInfo {
-        
+
+        /**
+         * 作业名
+         */
         private final String jobName;
-        
+        /**
+         * 作业分片项
+         */
         private final List<Integer> shardingItems;
         
         /**

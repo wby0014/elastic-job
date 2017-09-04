@@ -96,8 +96,11 @@ public final class FacadeService {
      * @return 作业上下文集合
      */
     public Collection<JobContext> getEligibleJobContext() {
+        // 从失效转移队列中获取所有有资格执行的作业上下文
         Collection<JobContext> failoverJobContexts = failoverService.getAllEligibleJobContexts();
+        // 从待执行队列中获取所有有资格执行的作业上下文
         Collection<JobContext> readyJobContexts = readyService.getAllEligibleJobContexts(failoverJobContexts);
+        // 合并
         Collection<JobContext> result = new ArrayList<>(failoverJobContexts.size() + readyJobContexts.size());
         result.addAll(failoverJobContexts);
         result.addAll(readyJobContexts);
@@ -124,6 +127,7 @@ public final class FacadeService {
                     break;
             }
         }
+        // 从失效转移队列中删除相关任务
         failoverService.remove(Lists.transform(failoverTaskContexts, new Function<TaskContext, TaskContext.MetaInfo>() {
             
             @Override
@@ -131,6 +135,7 @@ public final class FacadeService {
                 return input.getMetaInfo();
             }
         }));
+        // 从待执行队列中删除相关作业
         readyService.remove(readyJobNames);
     }
     

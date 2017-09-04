@@ -55,15 +55,20 @@ public final class SchedulerEngine implements Scheduler {
     @Override
     public void registered(final SchedulerDriver schedulerDriver, final Protos.FrameworkID frameworkID, final Protos.MasterInfo masterInfo) {
         log.info("call registered");
+        //
         frameworkIDService.save(frameworkID.getValue());
+        // 过期 TaskScheduler Lease
         taskScheduler.expireAllLeases();
+        // 注册 Mesos Master 信息
         MesosStateService.register(masterInfo.getHostname(), masterInfo.getPort());
     }
     
     @Override
     public void reregistered(final SchedulerDriver schedulerDriver, final Protos.MasterInfo masterInfo) {
         log.info("call reregistered");
+        // 过期 TaskScheduler Lease
         taskScheduler.expireAllLeases();
+        // 注册 Mesos Master 信息
         MesosStateService.register(masterInfo.getHostname(), masterInfo.getPort());
     }
     

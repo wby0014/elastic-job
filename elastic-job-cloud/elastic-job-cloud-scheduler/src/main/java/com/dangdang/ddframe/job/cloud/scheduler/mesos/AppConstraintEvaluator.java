@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * App目标slave适配度限制器.
+ * App目标Mesos slave适配度限制器.
  * 
  * <p>
  * 选择slave时需要考虑其上是否运行有App的executor,如果没有运行executor需要将其资源消耗考虑进适配计算算法中.
@@ -97,23 +97,25 @@ public final class AppConstraintEvaluator implements ConstraintEvaluator {
         double assigningMemoryMB = 0.0d;
         final String slaveId = targetVM.getAllCurrentOffers().iterator().next().getSlaveId().getValue();
         try {
+            // 判断当前分配的 Mesos Slave 是否运行着该作业任务请求对应的云作业App
             if (isAppRunningOnSlave(taskRequest.getId(), slaveId)) {
                 return new Result(true, "");
             }
-            Set<String> calculatedApps = new HashSet<>();
+            // 判断当前分配的 Mesos Slave 启动云作业App 是否超过资源限制
+            Set<String> calculatedApps = new HashSet<>(); // 已计算作业App集合
             List<TaskRequest> taskRequests = new ArrayList<>(targetVM.getTasksCurrentlyAssigned().size() + 1);
             taskRequests.add(taskRequest);
-            for (TaskAssignmentResult each : targetVM.getTasksCurrentlyAssigned()) {
+            for (TaskAssignmentResult each : targetVM.getTasksCurrentlyAssigned()) { // 当前已经分配作业请求
                 taskRequests.add(each.getRequest());
             }
             for (TaskRequest each : taskRequests) {
                 assigningCpus += each.getCPUs();
                 assigningMemoryMB += each.getMemory();
-                if (isAppRunningOnSlave(each.getId(), slaveId)) {
+                if (isAppRunningOnSlave(each.getId(), slaveId)) { // 作业App已经启动
                     continue;
                 }
                 CloudAppConfiguration assigningAppConfig = getAppConfiguration(each.getId());
-                if (!calculatedApps.add(assigningAppConfig.getAppName())) {
+                if (!calculatedApps.add(assigningAppConfig.getAppName())) { // 是否已经计算该App
                     continue;
                 }
                 assigningCpus += assigningAppConfig.getCpuCount();
@@ -123,11 +125,11 @@ public final class AppConstraintEvaluator implements ConstraintEvaluator {
             log.warn("Lack config, disable {}", getName(), ex);
             return new Result(true, "");
         }
-        if (assigningCpus > targetVM.getCurrAvailableResources().cpuCores()) {
+        if (assigningCpus > targetVM.getCurrAvailableResources().cpuCores()) { // cpu
             log.debug("Failure {} {} cpus:{}/{}", taskRequest.getId(), slaveId, assigningCpus, targetVM.getCurrAvailableResources().cpuCores());
             return new Result(false, String.format("cpu:%s/%s", assigningCpus, targetVM.getCurrAvailableResources().cpuCores()));
         }
-        if (assigningMemoryMB > targetVM.getCurrAvailableResources().memoryMB()) {
+        if (assigningMemoryMB > targetVM.getCurrAvailableResources().memoryMB()) { // memory
             log.debug("Failure {} {} mem:{}/{}", taskRequest.getId(), slaveId, assigningMemoryMB, targetVM.getCurrAvailableResources().memoryMB());
             return new Result(false, String.format("mem:%s/%s", assigningMemoryMB, targetVM.getCurrAvailableResources().memoryMB()));
         }

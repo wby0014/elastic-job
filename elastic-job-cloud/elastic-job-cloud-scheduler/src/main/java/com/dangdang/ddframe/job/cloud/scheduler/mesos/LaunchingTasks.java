@@ -40,7 +40,11 @@ import java.util.Map;
  */
 @Slf4j
 public final class LaunchingTasks {
-    
+
+    /**
+     * 作业上下文集合
+     * key：作业名
+     */
     private final Map<String, JobContext> eligibleJobContextsMap;
     
     public LaunchingTasks(final Collection<JobContext> eligibleJobContexts) {
@@ -49,7 +53,12 @@ public final class LaunchingTasks {
             eligibleJobContextsMap.put(each.getJobConfig().getJobName(), each);
         }
     }
-    
+
+    /**
+     * 获得待执行任务
+     *
+     * @return 待执行任务
+     */
     List<TaskRequest> getPendingTasks() {
         List<TaskRequest> result = new ArrayList<>(eligibleJobContextsMap.size() * 10);
         for (JobContext each : eligibleJobContextsMap.values()) {
@@ -57,7 +66,13 @@ public final class LaunchingTasks {
         }
         return result;
     }
-    
+
+    /**
+     * 创建待执行任务集合
+     *
+     * @param jobContext 作业运行上下文
+     * @return 待执行任务集合
+     */
     private Collection<TaskRequest> createTaskRequests(final JobContext jobContext) {
         Collection<TaskRequest> result = new ArrayList<>(jobContext.getAssignedShardingItems().size());
         for (int each : jobContext.getAssignedShardingItems()) {
@@ -65,20 +80,35 @@ public final class LaunchingTasks {
         }
         return result;
     }
-    
+
+    /**
+     * 获得作业分片不完整的作业集合
+     *
+     * @param vmAssignmentResults 主机分配任务结果集合
+     * @return 作业分片不完整的作业集合
+     */
     Collection<String> getIntegrityViolationJobs(final Collection<VMAssignmentResult> vmAssignmentResults) {
         Map<String, Integer> assignedJobShardingTotalCountMap = getAssignedJobShardingTotalCountMap(vmAssignmentResults);
         Collection<String> result = new HashSet<>(assignedJobShardingTotalCountMap.size(), 1);
         for (Map.Entry<String, Integer> entry : assignedJobShardingTotalCountMap.entrySet()) {
             JobContext jobContext = eligibleJobContextsMap.get(entry.getKey());
-            if (ExecutionType.FAILOVER != jobContext.getType() && !entry.getValue().equals(jobContext.getJobConfig().getTypeConfig().getCoreConfig().getShardingTotalCount())) {
+            if (ExecutionType.FAILOVER != jobContext.getType() // 不包括 FAILOVER 执行类型的作业
+                    && !entry.getValue().equals(jobContext.getJobConfig().getTypeConfig().getCoreConfig().getShardingTotalCount())) {
                 log.warn("Job {} is not assigned at this time, because resources not enough to run all sharding instances.", entry.getKey());
                 result.add(entry.getKey());
             }
         }
         return result;
     }
-    
+
+    /**
+     * 获得每个作业分片数集合
+     * key：作业名
+     * value：分片总数
+     *
+     * @param vmAssignmentResults 主机分配任务结果集合
+     * @return 每个作业分片数集合
+     */
     private Map<String, Integer> getAssignedJobShardingTotalCountMap(final Collection<VMAssignmentResult> vmAssignmentResults) {
         Map<String, Integer> result = new HashMap<>(eligibleJobContextsMap.size(), 1);
         for (VMAssignmentResult vmAssignmentResult: vmAssignmentResults) {

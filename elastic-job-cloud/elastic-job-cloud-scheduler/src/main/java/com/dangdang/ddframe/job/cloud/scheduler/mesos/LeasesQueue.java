@@ -35,7 +35,10 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class LeasesQueue {
-    
+
+    /**
+     * 单例
+     */
     private static final LeasesQueue INSTANCE = new LeasesQueue();
     
     private final BlockingQueue<VirtualMachineLease> queue = new LinkedBlockingQueue<>();

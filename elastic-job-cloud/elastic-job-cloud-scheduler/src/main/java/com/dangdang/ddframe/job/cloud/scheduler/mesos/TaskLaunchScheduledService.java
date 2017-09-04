@@ -18,10 +18,10 @@
 package com.dangdang.ddframe.job.cloud.scheduler.mesos;
 
 import com.dangdang.ddframe.job.api.JobType;
-import com.dangdang.ddframe.job.cloud.scheduler.env.BootstrapEnvironment;
+import com.dangdang.ddframe.job.cloud.scheduler.config.app.CloudAppConfiguration;
 import com.dangdang.ddframe.job.cloud.scheduler.config.job.CloudJobConfiguration;
 import com.dangdang.ddframe.job.cloud.scheduler.config.job.CloudJobExecutionType;
-import com.dangdang.ddframe.job.cloud.scheduler.config.app.CloudAppConfiguration;
+import com.dangdang.ddframe.job.cloud.scheduler.env.BootstrapEnvironment;
 import com.dangdang.ddframe.job.config.script.ScriptJobConfiguration;
 import com.dangdang.ddframe.job.context.ExecutionType;
 import com.dangdang.ddframe.job.context.TaskContext;
@@ -37,11 +37,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.protobuf.ByteString;
-import com.netflix.fenzo.TaskAssignmentResult;
-import com.netflix.fenzo.TaskRequest;
-import com.netflix.fenzo.TaskScheduler;
-import com.netflix.fenzo.VMAssignmentResult;
-import com.netflix.fenzo.VirtualMachineLease;
+import com.netflix.fenzo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.CommandLine;
@@ -51,12 +47,7 @@ import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
@@ -104,32 +95,41 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
     @Override
     protected void runOneIteration() throws Exception {
         try {
+            System.out.println("runOneIteration:" + new Date());
+            // 创建 Fenzo 任务请求
             LaunchingTasks launchingTasks = new LaunchingTasks(facadeService.getEligibleJobContext());
             List<TaskRequest> taskRequests = launchingTasks.getPendingTasks();
+            // 获取所有正在运行的云作业App https://github.com/Netflix/Fenzo/wiki/Constraints
             if (!taskRequests.isEmpty()) {
                 AppConstraintEvaluator.getInstance().loadAppRunningState();
             }
+            // 将任务请求分配到 Mesos Offer
             Collection<VMAssignmentResult> vmAssignmentResults = taskScheduler.scheduleOnce(taskRequests, LeasesQueue.getInstance().drainTo()).getResultMap().values();
-            //
-            List<TaskContext> taskContextsList = new LinkedList<>();
-            Map<List<Protos.OfferID>, List<Protos.TaskInfo>> offerIdTaskInfoMap = new HashMap<>();
+            // 创建 Mesos 任务请求
+            List<TaskContext> taskContextsList = new LinkedList<>(); // 任务运行时上下文集合
+            Map<List<Protos.OfferID>, List<Protos.TaskInfo>> offerIdTaskInfoMap = new HashMap<>(); // Mesos 任务信息集合
             for (VMAssignmentResult each: vmAssignmentResults) {
                 List<VirtualMachineLease> leasesUsed = each.getLeasesUsed();
                 List<Protos.TaskInfo> taskInfoList = new ArrayList<>(each.getTasksAssigned().size() * 10);
-                taskInfoList.addAll(getTaskInfoList(launchingTasks.getIntegrityViolationJobs(vmAssignmentResults), each, leasesUsed.get(0).hostname(), leasesUsed.get(0).getOffer()));
+                taskInfoList.addAll(getTaskInfoList(
+                        launchingTasks.getIntegrityViolationJobs(vmAssignmentResults), // 获得作业分片不完整的作业集合
+                        each, leasesUsed.get(0).hostname(), leasesUsed.get(0).getOffer()));
                 for (Protos.TaskInfo taskInfo : taskInfoList) {
                     taskContextsList.add(TaskContext.from(taskInfo.getTaskId().getValue()));
                 }
-                offerIdTaskInfoMap.put(getOfferIDs(leasesUsed), taskInfoList);
+                offerIdTaskInfoMap.put(getOfferIDs(leasesUsed), // 获得 Offer ID 集合
+                        taskInfoList);
             }
-            //
+            // 遍历任务运行时上下文
             for (TaskContext each : taskContextsList) {
+                // 将任务运行时上下文放入运行时队列
                 facadeService.addRunning(each);
+                // 发布作业状态追踪事件(State.TASK_STAGING)
                 jobEventBus.post(createJobStatusTraceEvent(each));
             }
-            //
+            // 从队列中删除已运行的作业
             facadeService.removeLaunchTasksFromQueue(taskContextsList);
-            //
+            // 提交任务给 Mesos
             for (Entry<List<OfferID>, List<TaskInfo>> each : offerIdTaskInfoMap.entrySet()) {
                 schedulerDriver.launchTasks(each.getKey(), each.getValue());
             }
@@ -138,6 +138,7 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
             //CHECKSTYLE:ON
             log.error("Launch task error", throwable);
         } finally {
+            // 清理 AppConstraintEvaluator 所有正在运行的云作业App
             AppConstraintEvaluator.getInstance().clearAppRunningState();
         }
     }
@@ -147,11 +148,16 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
         for (TaskAssignmentResult each: vmAssignmentResult.getTasksAssigned()) {
             TaskContext taskContext = TaskContext.from(each.getTaskId());
             String jobName = taskContext.getMetaInfo().getJobName();
-            if (!integrityViolationJobs.contains(jobName) && !facadeService.isRunning(taskContext) && !facadeService.isJobDisabled(jobName)) {
+            if (!integrityViolationJobs.contains(jobName) // 排除作业分片不完整的任务
+                    && !facadeService.isRunning(taskContext) // 排除正在运行中的任务
+                    && !facadeService.isJobDisabled(jobName)) { // 排除被禁用的任务
+                // 创建 Mesos 任务
                 Protos.TaskInfo taskInfo = getTaskInfo(offer, each);
                 if (null != taskInfo) {
                     result.add(taskInfo);
+                    // 添加任务主键和主机名称的映射
                     facadeService.addMapping(taskInfo.getTaskId().getValue(), hostname);
+                    // 通知 TaskScheduler 主机分配了这个任务
                     taskScheduler.getTaskAssigner().call(each.getRequest(), hostname);
                 }
             }
@@ -160,26 +166,33 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
     }
     
     private Protos.TaskInfo getTaskInfo(final Protos.Offer offer, final TaskAssignmentResult taskAssignmentResult) {
+        // 校验 作业配置 是否存在
         TaskContext taskContext = TaskContext.from(taskAssignmentResult.getTaskId());
         Optional<CloudJobConfiguration> jobConfigOptional = facadeService.load(taskContext.getMetaInfo().getJobName());
         if (!jobConfigOptional.isPresent()) {
             return null;
         }
         CloudJobConfiguration jobConfig = jobConfigOptional.get();
+        // 校验 作业配置 是否存在
         Optional<CloudAppConfiguration> appConfigOptional = facadeService.loadAppConfig(jobConfig.getAppName());
         if (!appConfigOptional.isPresent()) {
             return null;
         }
         CloudAppConfiguration appConfig = appConfigOptional.get();
+        // 设置 Mesos Slave ID
         taskContext.setSlaveId(offer.getSlaveId().getValue());
+        // 获得 分片上下文集合
         ShardingContexts shardingContexts = getShardingContexts(taskContext, appConfig, jobConfig);
+        // 瞬时的脚本作业，使用 Mesos 命令行执行，无需使用执行器
         boolean isCommandExecutor = CloudJobExecutionType.TRANSIENT == jobConfig.getJobExecutionType() && JobType.SCRIPT == jobConfig.getTypeConfig().getJobType();
         String script = appConfig.getBootstrapScript();
         if (isCommandExecutor) {
             script = ((ScriptJobConfiguration) jobConfig.getTypeConfig()).getScriptCommandLine();
         }
+        // 创建 启动命令
         Protos.CommandInfo.URI uri = buildURI(appConfig, isCommandExecutor);
         Protos.CommandInfo command = buildCommand(uri, script, shardingContexts, isCommandExecutor);
+        // 创建 Mesos 任务信息
         if (isCommandExecutor) {
             return buildCommandExecutorTaskInfo(taskContext, jobConfig, shardingContexts, offer, command);
         } else {
@@ -190,7 +203,7 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
     private ShardingContexts getShardingContexts(final TaskContext taskContext, final CloudAppConfiguration appConfig, final CloudJobConfiguration jobConfig) {
         Map<Integer, String> shardingItemParameters = new ShardingItemParameters(jobConfig.getTypeConfig().getCoreConfig().getShardingItemParameters()).getMap();
         Map<Integer, String> assignedShardingItemParameters = new HashMap<>(1, 1);
-        int shardingItem = taskContext.getMetaInfo().getShardingItems().get(0);
+        int shardingItem = taskContext.getMetaInfo().getShardingItems().get(0); // 单个作业分片
         assignedShardingItemParameters.put(shardingItem, shardingItemParameters.containsKey(shardingItem) ? shardingItemParameters.get(shardingItem) : "");
         return new ShardingContexts(taskContext.getId(), jobConfig.getJobName(), jobConfig.getTypeConfig().getCoreConfig().getShardingTotalCount(),
                 jobConfig.getTypeConfig().getCoreConfig().getJobParameter(), assignedShardingItemParameters, appConfig.getEventTraceSamplingCount());
@@ -202,7 +215,7 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
                 .setName(taskContext.getTaskName()).setSlaveId(offer.getSlaveId())
                 .addResources(buildResource("cpus", jobConfig.getCpuCount(), offer.getResourcesList()))
                 .addResources(buildResource("mem", jobConfig.getMemoryMB(), offer.getResourcesList()))
-                .setData(ByteString.copyFrom(new TaskInfoData(shardingContexts, jobConfig).serialize()));
+                .setData(ByteString.copyFrom(new TaskInfoData(shardingContexts, jobConfig).serialize())); //
         return result.setCommand(command).build();
     }
     
@@ -213,8 +226,10 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
                 .addResources(buildResource("cpus", jobConfig.getCpuCount(), offer.getResourcesList()))
                 .addResources(buildResource("mem", jobConfig.getMemoryMB(), offer.getResourcesList()))
                 .setData(ByteString.copyFrom(new TaskInfoData(shardingContexts, jobConfig).serialize()));
+        // ExecutorInfo
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder().setExecutorId(Protos.ExecutorID.newBuilder()
-                .setValue(taskContext.getExecutorId(jobConfig.getAppName()))).setCommand(command)
+                .setValue(taskContext.getExecutorId(jobConfig.getAppName()))) // 执行器 ID
+                .setCommand(command)
                 .addResources(buildResource("cpus", appConfig.getCpuCount(), offer.getResourcesList()))
                 .addResources(buildResource("mem", appConfig.getMemoryMB(), offer.getResourcesList()));
         if (env.getJobEventRdbConfiguration().isPresent()) {
@@ -224,11 +239,13 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
     }
     
     private Protos.CommandInfo.URI buildURI(final CloudAppConfiguration appConfig, final boolean isCommandExecutor) {
-        Protos.CommandInfo.URI.Builder result = Protos.CommandInfo.URI.newBuilder().setValue(appConfig.getAppURL()).setCache(appConfig.isAppCacheEnable());
+        Protos.CommandInfo.URI.Builder result = Protos.CommandInfo.URI.newBuilder()
+                .setValue(appConfig.getAppURL())
+                .setCache(appConfig.isAppCacheEnable()); // cache
         if (isCommandExecutor && !SupportedExtractionType.isExtraction(appConfig.getAppURL())) {
-            result.setExecutable(true);
+            result.setExecutable(true); // 是否可执行
         } else {
-            result.setExtract(true);
+            result.setExtract(true); // 是否需要解压
         }
         return result.build();
     }

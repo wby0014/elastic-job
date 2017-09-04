@@ -124,9 +124,11 @@ public final class ReadyService {
      * @return 有资格执行的作业上下文集合
      */
     public Collection<JobContext> getAllEligibleJobContexts(final Collection<JobContext> ineligibleJobContexts) {
+        // 不存在 待执行队列
         if (!regCenter.isExisted(ReadyNode.ROOT)) {
             return Collections.emptyList();
         }
+        // 无资格执行的作业上下文 转换成 无资格执行的作业集合
         Collection<String> ineligibleJobNames = Collections2.transform(ineligibleJobContexts, new Function<JobContext, String>() {
             
             @Override
@@ -134,18 +136,20 @@ public final class ReadyService {
                 return input.getJobConfig().getJobName();
             }
         });
+        // 获取 待执行队列 有资格执行的作业上下文
         List<String> jobNames = regCenter.getChildrenKeys(ReadyNode.ROOT);
         List<JobContext> result = new ArrayList<>(jobNames.size());
         for (String each : jobNames) {
             if (ineligibleJobNames.contains(each)) {
                 continue;
             }
+            // 排除 作业配置 不存在的作业
             Optional<CloudJobConfiguration> jobConfig = configService.load(each);
             if (!jobConfig.isPresent()) {
                 regCenter.remove(ReadyNode.getReadyJobNodePath(each));
                 continue;
             }
-            if (!runningService.isJobRunning(each)) {
+            if (!runningService.isJobRunning(each)) { // 排除 运行中 的作业
                 result.add(JobContext.from(jobConfig.get(), ExecutionType.READY));
             }
         }

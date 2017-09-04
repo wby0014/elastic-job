@@ -52,7 +52,12 @@ public final class RunningService {
     // TODO 使用JMX导出
     @Getter
     private static final ConcurrentHashMap<String, Set<TaskContext>> RUNNING_TASKS = new ConcurrentHashMap<>(TASK_INITIAL_SIZE);
-    
+
+    /**
+     * 任务主键和主机名称的映射
+     * key: 任务主键
+     * value: 主机名称
+     */
     private static final ConcurrentHashMap<String, String> TASK_HOSTNAME_MAPPER = new ConcurrentHashMap<>(TASK_INITIAL_SIZE);
     
     private final CoordinatorRegistryCenter regCenter;
@@ -94,10 +99,13 @@ public final class RunningService {
         if (!configurationService.load(taskContext.getMetaInfo().getJobName()).isPresent()) {
             return;
         }
+        // 添加到运行中的任务集合
         getRunningTasks(taskContext.getMetaInfo().getJobName()).add(taskContext);
+        // 判断是否为常驻任务
         if (!isDaemon(taskContext.getMetaInfo().getJobName())) {
             return;
         }
+        // 添加到运行中队列
         String runningTaskNodePath = RunningNode.getRunningTaskNodePath(taskContext.getMetaInfo().toString());
         if (!regCenter.isExisted(runningTaskNodePath)) {
             regCenter.persist(runningTaskNodePath, taskContext.getId());
