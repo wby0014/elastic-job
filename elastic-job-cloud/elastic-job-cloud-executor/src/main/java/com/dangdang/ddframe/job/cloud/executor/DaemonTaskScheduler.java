@@ -76,7 +76,9 @@ public final class DaemonTaskScheduler {
      * 初始化作业.
      */
     public void init() {
-        JobDetail jobDetail = JobBuilder.newJob(DaemonJob.class).withIdentity(jobRootConfig.getTypeConfig().getCoreConfig().getJobName()).build();
+        // Quartz JobDetail
+        JobDetail jobDetail = JobBuilder.newJob(DaemonJob.class)
+                .withIdentity(jobRootConfig.getTypeConfig().getCoreConfig().getJobName()).build();
         jobDetail.getJobDataMap().put(ELASTIC_JOB_DATA_MAP_KEY, elasticJob);
         jobDetail.getJobDataMap().put(JOB_FACADE_DATA_MAP_KEY, jobFacade);
         jobDetail.getJobDataMap().put(EXECUTOR_DRIVER_DATA_MAP_KEY, executorDriver);
@@ -97,7 +99,7 @@ public final class DaemonTaskScheduler {
     private Properties getBaseQuartzProperties() {
         Properties result = new Properties();
         result.put("org.quartz.threadPool.class", org.quartz.simpl.SimpleThreadPool.class.getName());
-        result.put("org.quartz.threadPool.threadCount", "1");
+        result.put("org.quartz.threadPool.threadCount", "1"); // 线程数：1
         result.put("org.quartz.scheduler.instanceName", taskId.getValue());
         if (!jobRootConfig.getTypeConfig().getCoreConfig().isMisfire()) {
             result.put("org.quartz.jobStore.misfireThreshold", "1");
@@ -120,7 +122,11 @@ public final class DaemonTaskScheduler {
     }
     
     private CronTrigger createTrigger(final String triggerIdentity, final String cron) {
-        return TriggerBuilder.newTrigger().withIdentity(triggerIdentity).withSchedule(CronScheduleBuilder.cronSchedule(cron).withMisfireHandlingInstructionDoNothing()).build();
+        return TriggerBuilder.newTrigger()
+                .withIdentity(triggerIdentity)
+                .withSchedule(CronScheduleBuilder.cronSchedule(cron)
+                .withMisfireHandlingInstructionDoNothing())
+                .build();
     }
     
     /**
@@ -165,13 +171,20 @@ public final class DaemonTaskScheduler {
             int currentJobEventSamplingCount = shardingContexts.getCurrentJobEventSamplingCount();
             if (jobEventSamplingCount > 0 && ++currentJobEventSamplingCount < jobEventSamplingCount) {
                 shardingContexts.setCurrentJobEventSamplingCount(currentJobEventSamplingCount);
+                //
                 jobFacade.getShardingContexts().setAllowSendJobEvent(false);
+                // 执行作业
                 JobExecutorFactory.getJobExecutor(elasticJob, jobFacade).execute();
             } else {
+                //
                 jobFacade.getShardingContexts().setAllowSendJobEvent(true);
+                //
                 executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskId).setState(Protos.TaskState.TASK_RUNNING).setMessage("BEGIN").build());
+                // 执行作业
                 JobExecutorFactory.getJobExecutor(elasticJob, jobFacade).execute();
+                //
                 executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskId).setState(Protos.TaskState.TASK_RUNNING).setMessage("COMPLETE").build());
+                //
                 shardingContexts.setCurrentJobEventSamplingCount(0);
             }
         }

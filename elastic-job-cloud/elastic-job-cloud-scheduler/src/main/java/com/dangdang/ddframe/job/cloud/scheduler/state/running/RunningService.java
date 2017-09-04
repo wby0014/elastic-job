@@ -161,10 +161,13 @@ public final class RunningService {
      * @param taskContext 任务运行时上下文
      */
     public void remove(final TaskContext taskContext) {
+        // 移除运行中的任务集合
         getRunningTasks(taskContext.getMetaInfo().getJobName()).remove(taskContext);
+        // 判断是否为常驻任务
         if (!isDaemonOrAbsent(taskContext.getMetaInfo().getJobName())) {
             return;
         }
+        // 将任务从运行时队列删除
         regCenter.remove(RunningNode.getRunningTaskNodePath(taskContext.getMetaInfo().toString()));
         String jobRootNode = RunningNode.getRunningJobNodePath(taskContext.getMetaInfo().getJobName());
         if (regCenter.isExisted(jobRootNode) && regCenter.getChildrenKeys(jobRootNode).isEmpty()) {

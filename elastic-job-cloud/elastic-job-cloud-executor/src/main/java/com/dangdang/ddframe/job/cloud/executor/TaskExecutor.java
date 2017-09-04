@@ -117,20 +117,26 @@ public final class TaskExecutor implements Executor {
         
         @Override
         public void run() {
+            // 更新 Mesos 任务状态，运行中。
             executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskInfo.getTaskId()).setState(Protos.TaskState.TASK_RUNNING).build());
-
+            //
             Map<String, Object> data = SerializationUtils.deserialize(taskInfo.getData().toByteArray());
             ShardingContexts shardingContexts = (ShardingContexts) data.get("shardingContext");
             @SuppressWarnings("unchecked")
             JobConfigurationContext jobConfig = new JobConfigurationContext((Map<String, String>) data.get("jobConfigContext"));
             try {
+                // 获得 分布式作业
                 ElasticJob elasticJob = getElasticJobInstance(jobConfig);
+                // 调度器提供内部服务的门面对象
                 final CloudJobFacade jobFacade = new CloudJobFacade(shardingContexts, jobConfig, jobEventBus);
+                // 执行作业
                 if (jobConfig.isTransient()) {
+                    // 执行作业
                     JobExecutorFactory.getJobExecutor(elasticJob, jobFacade).execute();
-
+                    // 更新 Mesos 任务状态，已完成。
                     executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskInfo.getTaskId()).setState(Protos.TaskState.TASK_FINISHED).build());
                 } else {
+                    // 初始化 常驻作业调度器
                     new DaemonTaskScheduler(elasticJob, jobConfig, jobFacade, executorDriver, taskInfo.getTaskId()).init();
                 }
                 // CHECKSTYLE:OFF
@@ -144,13 +150,19 @@ public final class TaskExecutor implements Executor {
         }
         
         private ElasticJob getElasticJobInstance(final JobConfigurationContext jobConfig) {
-            if (!Strings.isNullOrEmpty(jobConfig.getBeanName()) && !Strings.isNullOrEmpty(jobConfig.getApplicationContext())) {
+            if (!Strings.isNullOrEmpty(jobConfig.getBeanName()) && !Strings.isNullOrEmpty(jobConfig.getApplicationContext())) { // spring 环境
                 return getElasticJobBean(jobConfig);
             } else {
                 return getElasticJobClass(jobConfig);
             }
         }
-        
+
+        /**
+         * 从 Spring 容器中获得作业对象
+         *
+         * @param jobConfig 作业配置
+         * @return 作业对象
+         */
         private ElasticJob getElasticJobBean(final JobConfigurationContext jobConfig) {
             String applicationContextFile = jobConfig.getApplicationContext();
             if (null == applicationContexts.get(applicationContextFile)) {
@@ -162,7 +174,13 @@ public final class TaskExecutor implements Executor {
             }
             return (ElasticJob) applicationContexts.get(applicationContextFile).getBean(jobConfig.getBeanName());
         }
-        
+
+        /**
+         * 创建作业对象
+         *
+         * @param jobConfig 作业配置
+         * @return 作业对象
+         */
         private ElasticJob getElasticJobClass(final JobConfigurationContext jobConfig) {
             String jobClass = jobConfig.getTypeConfig().getJobClass();
             try {

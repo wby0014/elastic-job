@@ -235,13 +235,16 @@ public final class FacadeService {
      * @param jobName 作业名称
      */
     public void addDaemonJobToReadyQueue(final String jobName) {
+        // 作业配置不存在
         Optional<CloudJobConfiguration> jobConfigOptional = jobConfigService.load(jobName);
         if (!jobConfigOptional.isPresent()) {
             return;
         }
+        // 作业被禁用
         if (isDisable(jobConfigOptional.get())) {
             return;
         }
+        // 将常驻作业放入待执行队列
         readyService.addDaemon(jobName);
     }
     
