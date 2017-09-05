@@ -60,6 +60,7 @@ public final class LocalTaskExecutor {
     public void execute() {
         AbstractElasticJobExecutor jobExecutor;
         CloudJobFacade jobFacade = new CloudJobFacade(getShardingContexts(), getJobConfigurationContext(), new JobEventBus());
+        // 创建执行器
         switch (localCloudJobConfiguration.getTypeConfig().getJobType()) {
             case SIMPLE:
                 jobExecutor = new SimpleJobExecutor(getJobInstance(SimpleJob.class), jobFacade);
@@ -73,6 +74,7 @@ public final class LocalTaskExecutor {
             default:
                 throw new UnsupportedOperationException(localCloudJobConfiguration.getTypeConfig().getJobType().name());
         }
+        // 执行作业
         jobExecutor.execute();
     }
     
@@ -81,7 +83,9 @@ public final class LocalTaskExecutor {
         Map<Integer, String> shardingItemMap = new HashMap<>(1, 1);
         shardingItemMap.put(localCloudJobConfiguration.getShardingItem(),
                 new ShardingItemParameters(coreConfig.getShardingItemParameters()).getMap().get(localCloudJobConfiguration.getShardingItem()));
-        return new ShardingContexts(Joiner.on("@-@").join(localCloudJobConfiguration.getJobName(), localCloudJobConfiguration.getShardingItem(), "READY", "foo_slave_id", "foo_uuid"),
+        return new ShardingContexts(
+                // taskId 👇
+                Joiner.on("@-@").join(localCloudJobConfiguration.getJobName(), localCloudJobConfiguration.getShardingItem(), "READY", "foo_slave_id", "foo_uuid"),
                 localCloudJobConfiguration.getJobName(), coreConfig.getShardingTotalCount(), coreConfig.getJobParameter(), shardingItemMap);
     }
     
@@ -92,9 +96,9 @@ public final class LocalTaskExecutor {
         jobConfigurationMap.put("jobName", localCloudJobConfiguration.getJobName());
         jobConfigurationMap.put("beanName", localCloudJobConfiguration.getBeanName());
         jobConfigurationMap.put("applicationContext", localCloudJobConfiguration.getApplicationContext());
-        if (JobType.DATAFLOW == localCloudJobConfiguration.getTypeConfig().getJobType()) {
+        if (JobType.DATAFLOW == localCloudJobConfiguration.getTypeConfig().getJobType()) { // 数据流作业
             jobConfigurationMap.put("streamingProcess", Boolean.toString(((DataflowJobConfiguration) localCloudJobConfiguration.getTypeConfig()).isStreamingProcess()));
-        } else if (JobType.SCRIPT == localCloudJobConfiguration.getTypeConfig().getJobType()) {
+        } else if (JobType.SCRIPT == localCloudJobConfiguration.getTypeConfig().getJobType()) { // 脚本作业
             jobConfigurationMap.put("scriptCommandLine", ((ScriptJobConfiguration) localCloudJobConfiguration.getTypeConfig()).getScriptCommandLine());
         }
         return new JobConfigurationContext(jobConfigurationMap);
@@ -102,14 +106,14 @@ public final class LocalTaskExecutor {
     
     private <T extends ElasticJob> T getJobInstance(final Class<T> clazz) {
         Object result;
-        if (Strings.isNullOrEmpty(localCloudJobConfiguration.getApplicationContext())) {
+        if (Strings.isNullOrEmpty(localCloudJobConfiguration.getApplicationContext())) { // 直接创建 ElasticJob
             String jobClass = localCloudJobConfiguration.getTypeConfig().getJobClass();
             try {
                 result = Class.forName(jobClass).newInstance();
             } catch (final ReflectiveOperationException ex) {
                 throw new JobSystemException("Elastic-Job: Class '%s' initialize failure, the error message is '%s'.", jobClass, ex.getMessage());
             }
-        } else {
+        } else { // Spring 环境获得 ElasticJob
             result = new ClassPathXmlApplicationContext(localCloudJobConfiguration.getApplicationContext()).getBean(localCloudJobConfiguration.getBeanName());
         }
         return clazz.cast(result);

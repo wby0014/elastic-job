@@ -120,7 +120,9 @@ final class TransientProducerScheduler {
     }
     
     synchronized void deregister(final CloudJobConfiguration jobConfig) {
+        // 移除作业
         repository.remove(jobConfig.getJobName());
+        // 若 cron 不再对应有作业调度，移除 Quartz Scheduler 对 cron 对应的 Quartz Job
         String cron = jobConfig.getTypeConfig().getCoreConfig().getCron();
         if (!repository.containsKey(buildJobKey(cron))) {
             try {

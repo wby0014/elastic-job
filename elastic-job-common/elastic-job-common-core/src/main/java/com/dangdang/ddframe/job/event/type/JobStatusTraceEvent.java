@@ -83,16 +83,19 @@ public final class JobStatusTraceEvent implements JobEvent {
          */
         TASK_RUNNING,
         /**
-         * 完成
+         * 完成（正常）
          */
         TASK_FINISHED,
+        /**
+         * 完成（异常）
+         */
+        TASK_ERROR,
 
-        // TODO 芋艿：Elastic-Job-Cloud 独有
+        // TODO 芋艿：项目里暂未使用
 
         TASK_KILLED,
         TASK_LOST,
         TASK_FAILED,
-        TASK_ERROR,
         TASK_DROPPED,
         TASK_GONE,
         TASK_GONE_BY_OPERATOR,

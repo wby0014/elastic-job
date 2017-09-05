@@ -59,7 +59,11 @@ public final class DaemonTaskScheduler {
     private static final String EXECUTOR_DRIVER_DATA_MAP_KEY = "executorDriver";
     
     private static final String TASK_ID_DATA_MAP_KEY = "taskId";
-    
+
+    /**
+     * 任务 Quartz Scheduler 集合
+     * key：任务编号
+     */
     private static final ConcurrentHashMap<String, Scheduler> RUNNING_SCHEDULERS = new ConcurrentHashMap<>(1024, 1);
     
     private final ElasticJob elasticJob;
@@ -135,7 +139,9 @@ public final class DaemonTaskScheduler {
      * @param taskID 任务主键
      */
     public static void shutdown(final Protos.TaskID taskID) {
+        // 移除任务的 Quartz Scheduler
         Scheduler scheduler = RUNNING_SCHEDULERS.remove(taskID.getValue());
+        // 关闭任务的 Quartz Scheduler
         if (null != scheduler) {
             try {
                 scheduler.shutdown();

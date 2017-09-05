@@ -47,6 +47,7 @@ public class DisableJobService {
             log.warn("Cannot add disable job, caused by read state queue size is larger than {}.", env.getFrameworkConfiguration().getJobStateQueueSize());
             return;
         }
+        // 将作业放入禁用队列
         String disableJobNodePath = DisableJobNode.getDisableJobNodePath(jobName);
         if (!regCenter.isExisted(disableJobNodePath)) {
             regCenter.persist(disableJobNodePath, jobName);

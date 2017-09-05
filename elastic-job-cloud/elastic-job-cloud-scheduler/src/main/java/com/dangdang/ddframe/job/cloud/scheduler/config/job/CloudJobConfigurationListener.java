@@ -64,12 +64,15 @@ public final class CloudJobConfigurationListener implements TreeCacheListener {
             if (null == jobConfig) {
                 return;
             }
+            // 从待执行队列中删除相关作业
             if (CloudJobExecutionType.DAEMON == jobConfig.getJobExecutionType()) {
                 readyService.remove(Collections.singletonList(jobConfig.getJobName()));
             }
+            // 设置禁用错过重执行
             if (!jobConfig.getTypeConfig().getCoreConfig().isMisfire()) {
                 readyService.setMisfireDisabled(jobConfig.getJobName());
             }
+            // 重新调度作业
             producerManager.reschedule(jobConfig.getJobName());
         } else if (isJobConfigNode(event, path, Type.NODE_REMOVED)) {
             String jobName = path.substring(CloudJobConfigurationNode.ROOT.length() + 1, path.length());

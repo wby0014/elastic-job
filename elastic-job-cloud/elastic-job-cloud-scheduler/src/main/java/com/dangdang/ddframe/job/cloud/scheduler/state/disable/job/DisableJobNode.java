@@ -31,7 +31,7 @@ final class DisableJobNode {
     
     static final String ROOT = StateNode.ROOT + "/disable/job";
     
-    private static final String DISABLE_JOB = ROOT + "/%s";
+    private static final String DISABLE_JOB = ROOT + "/%s"; // %s = ${JOB_NAME}
     
     static String getDisableJobNodePath(final String jobName) {
         return String.format(DISABLE_JOB, jobName);

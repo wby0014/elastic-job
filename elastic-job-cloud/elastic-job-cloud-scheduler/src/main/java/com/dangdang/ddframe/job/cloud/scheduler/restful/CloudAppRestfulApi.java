@@ -166,7 +166,9 @@ public final class CloudAppRestfulApi {
     @Path("/{appName}/disable")
     public void disable(@PathParam("appName") final String appName) {
         if (appConfigService.load(appName).isPresent()) {
+            // 将应用放入禁用队列
             disableAppService.add(appName);
+            // 停止应用对应所有作业的调度
             for (CloudJobConfiguration each : jobConfigService.loadAll()) {
                 if (appName.equals(each.getAppName())) {
                     producerManager.unschedule(each.getJobName());
@@ -185,7 +187,9 @@ public final class CloudAppRestfulApi {
     @Path("/{appName}/disable")
     public void enable(@PathParam("appName") final String appName) throws JSONException {
         if (appConfigService.load(appName).isPresent()) {
+            // 从禁用应用队列中删除应用
             disableAppService.remove(appName);
+            // 重新开启应用对应所有作业的调度
             for (CloudJobConfiguration each : jobConfigService.loadAll()) {
                 if (appName.equals(each.getAppName())) {
                     producerManager.reschedule(each.getJobName());
@@ -204,18 +208,23 @@ public final class CloudAppRestfulApi {
     @Consumes(MediaType.APPLICATION_JSON)
     public void deregister(@PathParam("appName") final String appName) {
         if (appConfigService.load(appName).isPresent()) {
+            // 移除应用和应用对应所有作业的配置
             removeAppAndJobConfigurations(appName);
+            // 停止应用对应的执行器( Elastic-Job-Cloud-Scheduler )
             stopExecutors(appName);
         }
     }
     
     private void removeAppAndJobConfigurations(final String appName) {
+        // 注销(移除)应用对应所有作业的配置
         for (CloudJobConfiguration each : jobConfigService.loadAll()) {
             if (appName.equals(each.getAppName())) {
                 producerManager.deregister(each.getJobName());
             }
         }
+        // 从禁用应用队列中删除应用
         disableAppService.remove(appName);
+        // 删除云作业App配置
         appConfigService.remove(appName);
     }
     

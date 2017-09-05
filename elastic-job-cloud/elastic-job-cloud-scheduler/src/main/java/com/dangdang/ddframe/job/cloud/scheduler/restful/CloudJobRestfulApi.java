@@ -186,7 +186,9 @@ public final class CloudJobRestfulApi {
     public void enable(@PathParam("jobName") final String jobName) throws JSONException {
         Optional<CloudJobConfiguration> configOptional = configService.load(jobName);
         if (configOptional.isPresent()) {
+            // 将作业移出禁用队列
             facadeService.enableJob(jobName);
+            // 重新调度作业
             producerManager.reschedule(jobName);
         }
     }
@@ -200,7 +202,9 @@ public final class CloudJobRestfulApi {
     @Path("/{jobName}/disable")
     public void disable(@PathParam("jobName") final String jobName) {
         if (configService.load(jobName).isPresent()) {
+            // 将作业放入禁用队列
             facadeService.disableJob(jobName);
+            // 停止调度作业
             producerManager.unschedule(jobName);
         }
     }
@@ -214,10 +218,12 @@ public final class CloudJobRestfulApi {
     @Path("/trigger")
     @Consumes(MediaType.APPLICATION_JSON)
     public void trigger(final String jobName) {
+        // 常驻作业不允许触发一次作业
         Optional<CloudJobConfiguration> config = configService.load(jobName);
         if (config.isPresent() && CloudJobExecutionType.DAEMON == config.get().getJobExecutionType()) {
             throw new JobSystemException("Daemon job '%s' cannot support trigger.", jobName);
         }
+        // 将瞬时作业放入待执行队列
         facadeService.addTransient(jobName);
     }
     

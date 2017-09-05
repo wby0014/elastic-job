@@ -87,7 +87,9 @@ public final class TaskExecutor implements Executor {
     
     @Override
     public void killTask(final ExecutorDriver executorDriver, final Protos.TaskID taskID) {
+        // 更新 Mesos 任务状态，已杀死。
         executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskID).setState(Protos.TaskState.TASK_KILLED).build());
+        // 关闭该 Mesos 任务的调度
         DaemonTaskScheduler.shutdown(taskID);
     }
     

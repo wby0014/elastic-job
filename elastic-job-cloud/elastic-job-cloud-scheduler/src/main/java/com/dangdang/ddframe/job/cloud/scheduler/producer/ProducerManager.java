@@ -118,7 +118,9 @@ public final class ProducerManager {
         if (!jobConfigFromZk.isPresent()) {
             throw new JobConfigurationException("Cannot found job '%s', please register first.", jobConfig.getJobName());
         }
+        // 修改云作业配置
         configService.update(jobConfig);
+        // 重新调度作业
         reschedule(jobConfig.getJobName());
     }
     
@@ -130,9 +132,12 @@ public final class ProducerManager {
     public void deregister(final String jobName) {
         Optional<CloudJobConfiguration> jobConfig = configService.load(jobName);
         if (jobConfig.isPresent()) {
+            //  从作业禁用队列中删除作业
             disableJobService.remove(jobName);
+            // 删除云作业
             configService.remove(jobName);
         }
+        // 停止调度作业
         unschedule(jobName);
     }
     
@@ -159,11 +164,15 @@ public final class ProducerManager {
      * @param jobName 作业名称
      */
     public void unschedule(final String jobName) {
+        // 杀死作业对应的 Mesos 任务们
         for (TaskContext each : runningService.getRunningTasks(jobName)) {
             schedulerDriver.killTask(Protos.TaskID.newBuilder().setValue(each.getId()).build());
         }
+        // 将作业从运行时队列删除
         runningService.remove(jobName);
+        // 将作业从待运行队列删除
         readyService.remove(Lists.newArrayList(jobName));
+        // 移除瞬时作业的调度
         Optional<CloudJobConfiguration> jobConfig = configService.load(jobName);
         if (jobConfig.isPresent()) {
             transientProducerScheduler.deregister(jobConfig.get());
@@ -176,7 +185,9 @@ public final class ProducerManager {
      * @param jobName 作业名称
      */
     public void reschedule(final String jobName) {
+        // 停止调度作业
         unschedule(jobName);
+        // 调度作业
         Optional<CloudJobConfiguration> jobConfig = configService.load(jobName);
         if (jobConfig.isPresent()) {
             schedule(jobConfig.get());
