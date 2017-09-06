@@ -32,9 +32,9 @@ final class FailoverNode {
     
     static final String ROOT = StateNode.ROOT + "/failover";
     
-    private static final String FAILOVER_JOB = ROOT + "/%s";
+    private static final String FAILOVER_JOB = ROOT + "/%s"; // %s=${JOB_NAME}
     
-    private static final String FAILOVER_TASK = FAILOVER_JOB + "/%s";
+    private static final String FAILOVER_TASK = FAILOVER_JOB + "/%s"; // %s=${TASK_META_INFO}
     
     static String getFailoverJobNodePath(final String jobName) {
         return String.format(FAILOVER_JOB, jobName);

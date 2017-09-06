@@ -181,7 +181,8 @@ public final class FacadeService {
             return;
         }
         CloudJobConfiguration jobConfig = jobConfigOptional.get();
-        if (jobConfig.getTypeConfig().getCoreConfig().isFailover() || CloudJobExecutionType.DAEMON == jobConfig.getJobExecutionType()) {
+        if (jobConfig.getTypeConfig().getCoreConfig().isFailover() // 开启失效转移
+                || CloudJobExecutionType.DAEMON == jobConfig.getJobExecutionType()) { // 常驻作业
             failoverService.add(taskContext);
         }
     }

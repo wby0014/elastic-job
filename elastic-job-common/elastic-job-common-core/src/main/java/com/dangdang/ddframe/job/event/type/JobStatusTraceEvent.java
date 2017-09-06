@@ -91,8 +91,7 @@ public final class JobStatusTraceEvent implements JobEvent {
          */
         TASK_ERROR,
 
-        // TODO 芋艿：项目里暂未使用
-
+        // Elastic-Job-Cloud 如下独有
         TASK_KILLED,
         TASK_LOST,
         TASK_FAILED,

@@ -145,7 +145,9 @@ public final class TaskExecutor implements Executor {
             } catch (final Throwable ex) {
                 // CHECKSTYLE:ON
                 log.error("Elastic-Job-Cloud-Executor error", ex);
+                // 更新 Mesos 任务状态，错误。
                 executorDriver.sendStatusUpdate(Protos.TaskStatus.newBuilder().setTaskId(taskInfo.getTaskId()).setState(Protos.TaskState.TASK_ERROR).setMessage(ExceptionUtil.transform(ex)).build());
+                // 停止自己
                 executorDriver.stop();
                 throw ex;
             }

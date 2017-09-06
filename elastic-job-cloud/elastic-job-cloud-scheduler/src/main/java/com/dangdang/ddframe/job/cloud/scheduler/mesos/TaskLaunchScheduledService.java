@@ -95,7 +95,7 @@ public final class TaskLaunchScheduledService extends AbstractScheduledService {
     @Override
     protected void runOneIteration() throws Exception {
         try {
-            System.out.println("runOneIteration:" + new Date());
+//            System.out.println("runOneIteration:" + new Date());
             // 创建 Fenzo 任务请求
             LaunchingTasks launchingTasks = new LaunchingTasks(facadeService.getEligibleJobContext());
             List<TaskRequest> taskRequests = launchingTasks.getPendingTasks();

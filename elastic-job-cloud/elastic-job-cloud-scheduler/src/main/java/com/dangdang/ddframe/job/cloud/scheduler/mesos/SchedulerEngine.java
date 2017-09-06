@@ -92,8 +92,10 @@ public final class SchedulerEngine implements Scheduler {
         TaskContext taskContext = TaskContext.from(taskId);
         String jobName = taskContext.getMetaInfo().getJobName();
         log.trace("call statusUpdate task state is: {}, task id is: {}", taskStatus.getState(), taskId);
-        jobEventBus.post(new JobStatusTraceEvent(jobName, taskContext.getId(), taskContext.getSlaveId(), Source.CLOUD_SCHEDULER, 
+        //
+        jobEventBus.post(new JobStatusTraceEvent(jobName, taskContext.getId(), taskContext.getSlaveId(), Source.CLOUD_SCHEDULER,
                 taskContext.getType(), String.valueOf(taskContext.getMetaInfo().getShardingItems()), State.valueOf(taskStatus.getState().name()), taskStatus.getMessage()));
+        //
         switch (taskStatus.getState()) {
             case TASK_RUNNING:
                 if (!facadeService.load(jobName).isPresent()) {
@@ -121,12 +123,16 @@ public final class SchedulerEngine implements Scheduler {
             case TASK_DROPPED:
             case TASK_GONE:
             case TASK_GONE_BY_OPERATOR:
-            case TASK_FAILED:
-            case TASK_ERROR:
+            case TASK_FAILED: // 执行作业任务被错误终止
+            case TASK_ERROR: // 任务错误
                 log.warn("task id is: {}, status is: {}, message is: {}, source is: {}", taskId, taskStatus.getState(), taskStatus.getMessage(), taskStatus.getSource());
+                // 将任务从运行时队列删除
                 facadeService.removeRunning(taskContext);
+                // 记录失效转移队列
                 facadeService.recordFailoverTask(taskContext);
+                // 通知 TaskScheduler 任务不分配在对应主机上
                 unAssignTask(taskId);
+                // 统计
                 statisticManager.taskRunFailed();
                 break;
             case TASK_UNKNOWN:

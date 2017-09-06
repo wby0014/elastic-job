@@ -75,7 +75,8 @@ public final class FailoverService {
             return;
         }
         String failoverTaskNodePath = FailoverNode.getFailoverTaskNodePath(taskContext.getMetaInfo().toString());
-        if (!regCenter.isExisted(failoverTaskNodePath) && !runningService.isTaskRunning(taskContext.getMetaInfo())) {
+        if (!regCenter.isExisted(failoverTaskNodePath) // 判断不在失效转移队列
+                && !runningService.isTaskRunning(taskContext.getMetaInfo())) { // 判断不在运行中
             // TODO Daemon类型作业增加存储是否立即失效转移
             regCenter.persist(failoverTaskNodePath, taskContext.getId());
         }
@@ -87,24 +88,30 @@ public final class FailoverService {
      * @return 有资格执行的作业上下文集合
      */
     public Collection<JobContext> getAllEligibleJobContexts() {
+        // 不存在 失效转移队列
         if (!regCenter.isExisted(FailoverNode.ROOT)) {
             return Collections.emptyList();
         }
+        // 获取 失效转移队列 的作业们
         List<String> jobNames = regCenter.getChildrenKeys(FailoverNode.ROOT);
         Collection<JobContext> result = new ArrayList<>(jobNames.size());
         Set<HashCode> assignedTasks = new HashSet<>(jobNames.size() * 10, 1);
         for (String each : jobNames) {
+            // 为空时，移除 失效转移队列 的作业
             List<String> taskIdList = regCenter.getChildrenKeys(FailoverNode.getFailoverJobNodePath(each));
             if (taskIdList.isEmpty()) {
                 regCenter.remove(FailoverNode.getFailoverJobNodePath(each));
                 continue;
             }
+            // 排除 作业配置 不存在的作业
             Optional<CloudJobConfiguration> jobConfig = configService.load(each);
             if (!jobConfig.isPresent()) {
                 regCenter.remove(FailoverNode.getFailoverJobNodePath(each));
                 continue;
             }
+            // 获得待执行的分片集合
             List<Integer> assignedShardingItems = getAssignedShardingItems(each, taskIdList, assignedTasks);
+            //
             if (!assignedShardingItems.isEmpty() && jobConfig.isPresent()) {
                 result.add(new JobContext(jobConfig.get(), assignedShardingItems, ExecutionType.FAILOVER));    
             }
@@ -116,7 +123,8 @@ public final class FailoverService {
         List<Integer> result = new ArrayList<>(taskIdList.size());
         for (String each : taskIdList) {
             TaskContext.MetaInfo metaInfo = TaskContext.MetaInfo.from(each);
-            if (assignedTasks.add(Hashing.md5().newHasher().putString(jobName, Charsets.UTF_8).putInt(metaInfo.getShardingItems().get(0)).hash()) && !runningService.isTaskRunning(metaInfo)) {
+            if (assignedTasks.add(Hashing.md5().newHasher().putString(jobName, Charsets.UTF_8).putInt(metaInfo.getShardingItems().get(0)).hash()) // 排重
+                    && !runningService.isTaskRunning(metaInfo)) { // 排除正在运行中
                 result.add(metaInfo.getShardingItems().get(0));
             }
         }
