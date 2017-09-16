@@ -161,7 +161,7 @@ public class JobScheduler {
             StdSchedulerFactory factory = new StdSchedulerFactory();
             factory.initialize(getBaseQuartzProperties());
             result = factory.getScheduler();
-            result.getListenerManager().addTriggerListener(schedulerFacade.newJobTriggerListener()); // TODO 博客：带执行写完，补充到博客
+            result.getListenerManager().addTriggerListener(schedulerFacade.newJobTriggerListener()); // 触发监听器。
         } catch (final SchedulerException ex) {
             throw new JobSystemException(ex);
         }
@@ -173,7 +173,7 @@ public class JobScheduler {
         result.put("org.quartz.threadPool.class", org.quartz.simpl.SimpleThreadPool.class.getName());
         result.put("org.quartz.threadPool.threadCount", "1"); // Quartz 线程数：1
         result.put("org.quartz.scheduler.instanceName", liteJobConfig.getJobName());
-        result.put("org.quartz.jobStore.misfireThreshold", "1");
+        result.put("org.quartz.jobStore.misfireThreshold", "1"); // 当前时超过已安排时间多久的作业算 misfire
         result.put("org.quartz.plugin.shutdownhook.class", JobShutdownHookPlugin.class.getName()); // 作业关闭钩子
         result.put("org.quartz.plugin.shutdownhook.cleanShutdown", Boolean.TRUE.toString()); // 关闭时，清理所有资源
         return result;

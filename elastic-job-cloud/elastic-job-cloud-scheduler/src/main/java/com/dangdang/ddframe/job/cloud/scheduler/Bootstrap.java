@@ -51,17 +51,22 @@ public final class Bootstrap {
         BootstrapEnvironment.getInstance().getZookeeperConfiguration().setConnectionTimeoutMilliseconds(Integer.MAX_VALUE);
 
         // CHECKSTYLE:ON
+        // 初始化 注册中心
         CoordinatorRegistryCenter regCenter = new ZookeeperRegistryCenter(BootstrapEnvironment.getInstance().getZookeeperConfiguration());
         regCenter.init();
+        // 初始化 Zookeeper 选举服务
         final ZookeeperElectionService electionService = new ZookeeperElectionService(
                 BootstrapEnvironment.getInstance().getFrameworkHostPort(), (CuratorFramework) regCenter.getRawClient(), HANode.ELECTION_NODE, new SchedulerElectionCandidate(regCenter));
         electionService.start();
+        // 挂起 主进程
         final CountDownLatch latch = new CountDownLatch(1);
         latch.await();
+        // Hook TODO 貌似位置不对？
         Runtime.getRuntime().addShutdownHook(new Thread("shutdown-hook") {
         
             @Override
             public void run() {
+                // 停止选举
                 electionService.stop();
                 latch.countDown();
             }

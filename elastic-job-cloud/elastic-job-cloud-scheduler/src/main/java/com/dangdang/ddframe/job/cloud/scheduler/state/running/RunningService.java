@@ -48,7 +48,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public final class RunningService {
     
     private static final int TASK_INITIAL_SIZE = 1024;
-    
+
+    /**
+     * 运行中作业映射
+     * key：作业名称
+     * value：任务运行时上下文集合
+     */
     // TODO 使用JMX导出
     @Getter
     private static final ConcurrentHashMap<String, Set<TaskContext>> RUNNING_TASKS = new ConcurrentHashMap<>(TASK_INITIAL_SIZE);
@@ -76,10 +81,12 @@ public final class RunningService {
         clear();
         List<String> jobKeys = regCenter.getChildrenKeys(RunningNode.ROOT);
         for (String each : jobKeys) {
+            // 从运行中队列移除不存在配置的作业任务
             if (!configurationService.load(each).isPresent()) {
                 remove(each);
                 continue;
             }
+            // 添加 运行中作业映射
             RUNNING_TASKS.put(each, Sets.newCopyOnWriteArraySet(Lists.transform(regCenter.getChildrenKeys(RunningNode.getRunningJobNodePath(each)), new Function<String, TaskContext>() {
                 
                 @Override

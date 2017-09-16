@@ -79,7 +79,9 @@ public final class ProducerManager {
      */
     public void startup() {
         log.info("Start producer manager");
+        // 发布瞬时作业任务的调度器
         transientProducerScheduler.start();
+        // 初始化调度作业
         for (CloudJobConfiguration each : configService.loadAll()) {
             schedule(each);
         }

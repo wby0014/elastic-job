@@ -55,7 +55,7 @@ public final class SchedulerEngine implements Scheduler {
     @Override
     public void registered(final SchedulerDriver schedulerDriver, final Protos.FrameworkID frameworkID, final Protos.MasterInfo masterInfo) {
         log.info("call registered");
-        //
+        // 保存FrameworkID
         frameworkIDService.save(frameworkID.getValue());
         // 过期 TaskScheduler Lease
         taskScheduler.expireAllLeases();
@@ -92,6 +92,7 @@ public final class SchedulerEngine implements Scheduler {
         TaskContext taskContext = TaskContext.from(taskId);
         String jobName = taskContext.getMetaInfo().getJobName();
         log.trace("call statusUpdate task state is: {}, task id is: {}", taskStatus.getState(), taskId);
+        log.warn("task id is: {}, status is: {}, message is: {}, source is: {}", taskId, taskStatus.getState(), taskStatus.getMessage(), taskStatus.getSource());
         //
         jobEventBus.post(new JobStatusTraceEvent(jobName, taskContext.getId(), taskContext.getSlaveId(), Source.CLOUD_SCHEDULER,
                 taskContext.getType(), String.valueOf(taskContext.getMetaInfo().getShardingItems()), State.valueOf(taskStatus.getState().name()), taskStatus.getMessage()));

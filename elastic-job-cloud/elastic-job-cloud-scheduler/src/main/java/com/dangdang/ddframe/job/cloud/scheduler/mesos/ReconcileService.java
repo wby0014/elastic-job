@@ -66,6 +66,7 @@ public class ReconcileService extends AbstractScheduledService {
     public void explicitReconcile() {
         lock.lock();
         try {
+            // 获取运行中的作业任务上下文集合
             Set<TaskContext> runningTask = new HashSet<>();
             for (Set<TaskContext> each : facadeService.getAllRunningTasks().values()) {
                 runningTask.addAll(each);
@@ -74,13 +75,15 @@ public class ReconcileService extends AbstractScheduledService {
                 return;
             }
             log.info("Requesting {} tasks reconciliation with the Mesos master", runningTask.size());
+            // 查询指定任务
             schedulerDriver.reconcileTasks(Collections2.transform(runningTask, new Function<TaskContext, Protos.TaskStatus>() {
                 @Override
                 public Protos.TaskStatus apply(final TaskContext input) {
                     return Protos.TaskStatus.newBuilder()
                             .setTaskId(Protos.TaskID.newBuilder().setValue(input.getId()).build())
                             .setSlaveId(Protos.SlaveID.newBuilder().setValue(input.getSlaveId()).build())
-                            .setState(Protos.TaskState.TASK_RUNNING).build();
+                            .setState(Protos.TaskState.TASK_RUNNING)
+                            .build();
                 }
             }));
         } finally {
@@ -94,6 +97,7 @@ public class ReconcileService extends AbstractScheduledService {
     public void implicitReconcile() {
         lock.lock();
         try {
+            // 查询全部任务
             schedulerDriver.reconcileTasks(Collections.<Protos.TaskStatus>emptyList());
         } finally {
             lock.unlock();

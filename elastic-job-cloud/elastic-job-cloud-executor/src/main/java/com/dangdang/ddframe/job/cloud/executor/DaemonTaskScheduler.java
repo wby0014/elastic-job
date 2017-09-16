@@ -106,7 +106,7 @@ public final class DaemonTaskScheduler {
         result.put("org.quartz.threadPool.threadCount", "1"); // 线程数：1
         result.put("org.quartz.scheduler.instanceName", taskId.getValue());
         if (!jobRootConfig.getTypeConfig().getCoreConfig().isMisfire()) {
-            result.put("org.quartz.jobStore.misfireThreshold", "1");
+            result.put("org.quartz.jobStore.misfireThreshold", "1"); // 当前时超过已安排时间多久的作业算 misfire
         }
         result.put("org.quartz.plugin.shutdownhook.class", ShutdownHookPlugin.class.getName());
         result.put("org.quartz.plugin.shutdownhook.cleanShutdown", Boolean.TRUE.toString());

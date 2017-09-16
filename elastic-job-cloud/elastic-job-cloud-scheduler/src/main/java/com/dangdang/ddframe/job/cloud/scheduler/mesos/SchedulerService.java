@@ -87,8 +87,10 @@ public final class SchedulerService {
     }
     
     private SchedulerDriver getSchedulerDriver(final TaskScheduler taskScheduler, final JobEventBus jobEventBus, final FrameworkIDService frameworkIDService) {
+        // 获取 FrameworkID
         Optional<String> frameworkIDOptional = frameworkIDService.fetch();
         Protos.FrameworkInfo.Builder builder = Protos.FrameworkInfo.newBuilder();
+        // 如果存在，设置 FrameworkID
         if (frameworkIDOptional.isPresent()) {
             builder.setId(Protos.FrameworkID.newBuilder().setValue(frameworkIDOptional.get()).build());
         }

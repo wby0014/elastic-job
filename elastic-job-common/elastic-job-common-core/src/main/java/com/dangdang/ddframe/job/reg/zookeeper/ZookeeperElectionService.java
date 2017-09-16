@@ -40,23 +40,30 @@ public final class ZookeeperElectionService {
     private final LeaderSelector leaderSelector;
     
     public ZookeeperElectionService(final String identity, final CuratorFramework client, final String electionPath, final ElectionCandidate electionCandidate) {
+        // 创建 LeaderSelector
         leaderSelector = new LeaderSelector(client, electionPath, new LeaderSelectorListenerAdapter() {
             
             @Override
             public void takeLeadership(final CuratorFramework client) throws Exception {
                 log.info("Elastic job: {} has leadership", identity);
                 try {
+                    // 开始领导状态
                     electionCandidate.startLeadership();
+                    // 挂起 进程
                     leaderLatch.await();
                     log.warn("Elastic job: {} lost leadership.", identity);
+                    // 终止领导状态
                     electionCandidate.stopLeadership();
                 } catch (final JobSystemException exception) {
+                    // 异常退出
                     log.error("Elastic job: Starting error", exception);
                     System.exit(1);  
                 }
             }
         });
+        // 设置重复参与选举主节点
         leaderSelector.autoRequeue();
+        // 设置参与节点的编号
         leaderSelector.setId(identity);
     }
     
@@ -73,8 +80,10 @@ public final class ZookeeperElectionService {
      */
     public void stop() {
         log.info("Elastic job: stop leadership election");
+        // 结束 #takeLeadership() 方法的进程挂起
         leaderLatch.countDown();
         try {
+            // 关闭 LeaderSelector
             leaderSelector.close();
             // CHECKSTYLE:OFF
         } catch (final Exception ignored) {
