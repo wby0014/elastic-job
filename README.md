@@ -1,5 +1,31 @@
 # Elastic-Job - distributed scheduled job solution
 
+* 调度作业中间件 **Elastic-Job-Lite**
+    * [《Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？》](http://www.iocoder.cn/Elastic-Job/why-read-Elastic-Job-source-code?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 作业配置》](http://www.iocoder.cn/Elastic-Job/job-config?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 作业初始化》](http://www.iocoder.cn/Elastic-Job/job-init?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 作业执行》](http://www.iocoder.cn/Elastic-Job/job-execute?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 注册中心》](http://www.iocoder.cn/Elastic-Job/reg-center-zookeeper?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 作业数据存储》](http://www.iocoder.cn/Elastic-Job/job-storage?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 注册中心监听器》](http://www.iocoder.cn/Elastic-Job/reg-center-zookeeper-listener?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 主节点选举》](http://www.iocoder.cn/Elastic-Job/election?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 作业分片策略》](http://www.iocoder.cn/Elastic-Job/job-sharding-strategy?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 作业分片》](http://www.iocoder.cn/Elastic-Job/job-sharding?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 作业失效转移》](http://www.iocoder.cn/Elastic-Job/job-failover?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 作业事件追踪》](http://www.iocoder.cn/Elastic-Job/job-event-trace?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 作业监听器》](http://www.iocoder.cn/Elastic-Job/job-listener?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 自诊断修复》](http://www.iocoder.cn/Elastic-Job/reconcile?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 作业监控服务》](http://www.iocoder.cn/Elastic-Job/job-monitor?github&1604)
+    * [《Elastic-Job-Lite 源码分析 —— 运维平台》](http://www.iocoder.cn/Elastic-Job/job-console?github&1604)
+
+* 调度作业中间件 **Elastic-Job-Cloud**
+    * [《Elastic-Job-Cloud 源码分析 —— 作业配置》](http://www.iocoder.cn/Elastic-Job/cloud-job-config?github&1605)
+    * [《Elastic-Job-Cloud 源码分析 —— 作业调度（一）》](http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-first?github&1605)
+    * [《Elastic-Job-Cloud 源码分析 —— 作业调度（二）》](http://www.iocoder.cn/Elastic-Job/cloud-job-scheduler-and-executor-second?github&1605)
+    * [《Elastic-Job-Cloud 源码分析 —— 本地运行模式》](http://www.iocoder.cn/Elastic-Job/cloud-local-executor?github&1605)
+    * [《Elastic-Job-Cloud 源码分析 —— 作业失效转移》](http://www.iocoder.cn/Elastic-Job/cloud-job-failover?github&1605)
+    * [《Elastic-Job-Cloud 源码分析 —— 高可用》](http://www.iocoder.cn/Elastic-Job/cloud-high-availability?github&1605)
+
 [![Build Status](https://secure.travis-ci.org/dangdangdotcom/elastic-job.png?branch=master)](https://travis-ci.org/dangdangdotcom/elastic-job)
 [![Maven Status](https://maven-badges.herokuapp.com/maven-central/com.dangdang/elastic-job/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.dangdang/elastic-job)
 [![Coverage Status](https://coveralls.io/repos/dangdangdotcom/elastic-job/badge.svg?branch=master&service=github)](https://coveralls.io/github/dangdangdotcom/elastic-job?branch=master)
