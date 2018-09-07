@@ -1,5 +1,26 @@
 # Elastic-Job - distributed scheduled job solution
 
+# 个人博客
+
+-------
+
+![](http://www.yunai.me/images/common/wechat_mp.jpeg)
+
+> 🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  
+> 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
+> 2. RocketMQ / MyCAT / Sharding-JDBC **中文注释源码 GitHub 地址**  
+> 3. 您对于源码的疑问每条留言**都**将得到**认真**回复。**甚至不知道如何读源码也可以请教噢**。  
+> 4. **新的**源码解析文章**实时**收到通知。**每周更新一篇左右**。
+
+-------
+
+# 联系方式
+
+* QQ : 7685413
+* 微信 : wangwenbin-server
+* 掘金-Java交流群 : 217878901
+* 知识星球：![知识星球](http://www.iocoder.cn/images/Architecture/2017_12_29/01.png)
+
 * 调度作业中间件 **Elastic-Job-Lite**
     * [《Elastic-Job 源码分析 —— 为什么阅读 Elastic-Job 源码？》](http://www.iocoder.cn/Elastic-Job/why-read-Elastic-Job-source-code?github&1604)
     * [《Elastic-Job-Lite 源码分析 —— 作业配置》](http://www.iocoder.cn/Elastic-Job/job-config?github&1604)
