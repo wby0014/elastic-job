@@ -2,9 +2,11 @@
 
 # 个人博客
 
+[http://www.iocoder.cn](http://www.iocoder.cn/?github)
+
 -------
 
-![](http://www.yunai.me/images/common/wechat_mp.jpeg)
+![](http://www.iocoder.cn/images/common/wechat_mp.jpeg)
 
 > 🙂🙂🙂关注**微信公众号：【芋艿的后端小屋】**有福利：  
 > 1. RocketMQ / MyCAT / Sharding-JDBC **所有**源码分析文章列表  
@@ -14,11 +16,6 @@
 
 -------
 
-# 联系方式
-
-* QQ : 7685413
-* 微信 : wangwenbin-server
-* 掘金-Java交流群 : 217878901
 * 知识星球：![知识星球](http://www.iocoder.cn/images/Architecture/2017_12_29/01.png)
 
 * 调度作业中间件 **Elastic-Job-Lite**
