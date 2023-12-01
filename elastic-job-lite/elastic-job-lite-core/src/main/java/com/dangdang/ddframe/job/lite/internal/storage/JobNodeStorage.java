@@ -184,6 +184,8 @@ public final class JobNodeStorage {
      * @param callback 执行操作的回调
      */
     public void executeInLeader(final String latchNode, final LeaderExecutionCallback callback) {
+        // 启动leaderLatch,其主要实现原理是去锁路径下创建一个zk临时顺序节点，如果创建的节点序号最小，表示获取锁，await方法将返回，
+        // 否则前一个节点上监听其删除事件，并同步阻塞。成功获得分布式锁后将执行callback回调方法
         try (LeaderLatch latch = new LeaderLatch(getClient(), jobNodePath.getFullPath(latchNode))) {
             latch.start();
             latch.await();

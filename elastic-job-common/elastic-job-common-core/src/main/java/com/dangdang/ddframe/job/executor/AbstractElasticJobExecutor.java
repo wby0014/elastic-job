@@ -189,7 +189,7 @@ public abstract class AbstractElasticJobExecutor {
             }
             return;
         }
-        // 注册作业启动信息
+        // 注册作业启动信息，即创建类似sharding/0/running/jobName的临时节点
         jobFacade.registerJobBegin(shardingContexts);
         // 发布作业状态追踪事件(State.TASK_RUNNING)
         String taskId = shardingContexts.getTaskId();
