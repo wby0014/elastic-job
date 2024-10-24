@@ -98,7 +98,13 @@ public final class ExecutionContextService {
     private boolean isRunning(final int shardingItem) {
         return jobNodeStorage.isJobNodeExisted(ShardingNode.getRunningNode(shardingItem));
     }
-    
+
+    /**
+     * 获取分片项对应的分片参数，即0=shanghai,1=guangzhou,2=hangzhou
+     * @param shardingItems
+     * @param shardingItemParameterMap
+     * @return
+     */
     private Map<Integer, String> getAssignedShardingItemParameterMap(final List<Integer> shardingItems, final Map<Integer, String> shardingItemParameterMap) {
         Map<Integer, String> result = new HashMap<>(shardingItemParameterMap.size(), 1);
         for (int each : shardingItems) {

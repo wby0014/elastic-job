@@ -113,8 +113,9 @@ public final class ShardingService {
         // 【主节点】作业分片项分配
         // 等待 作业未在运行中状态
         waitingOtherJobCompleted();
-        //
+        // 加载liteJob的配置
         LiteJobConfiguration liteJobConfig = configService.load(false);
+        // 分片数量
         int shardingTotalCount = liteJobConfig.getTypeConfig().getCoreConfig().getShardingTotalCount();
         // 设置 作业正在重分片的标记
         log.debug("Job '{}' sharding begin.", jobName);
