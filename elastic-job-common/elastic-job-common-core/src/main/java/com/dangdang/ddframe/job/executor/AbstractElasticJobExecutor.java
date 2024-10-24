@@ -123,7 +123,7 @@ public abstract class AbstractElasticJobExecutor {
     }
     
     /**
-     * 执行作业.
+     * 执行作业. 总入口
      */
     public final void execute() {
         // 检查 作业执行环境

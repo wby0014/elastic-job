@@ -41,6 +41,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
 
+/**
+ * main启动类示例
+ */
 public final class JavaMain {
     
     private static final int EMBED_ZOOKEEPER_PORT = 4181;
@@ -51,15 +54,15 @@ public final class JavaMain {
     
     // switch to MySQL by yourself
     private static final String EVENT_RDB_STORAGE_DRIVER = "com.mysql.jdbc.Driver";
-    private static final String EVENT_RDB_STORAGE_URL = "jdbc:mysql://127.0.0.1:33061/db1";
+    private static final String EVENT_RDB_STORAGE_URL = "jdbc:mysql://10.6.6.49:3306/test";
     
 //    private static final String EVENT_RDB_STORAGE_DRIVER = "org.h2.Driver";
     
 //    private static final String EVENT_RDB_STORAGE_URL = "jdbc:h2:mem:job_event_storage";
     
-    private static final String EVENT_RDB_STORAGE_USERNAME = "root";
+    private static final String EVENT_RDB_STORAGE_USERNAME = "wpt_test";
     
-    private static final String EVENT_RDB_STORAGE_PASSWORD = "123456";
+    private static final String EVENT_RDB_STORAGE_PASSWORD = "hWhG4tjxFV*49ROY";
     
     // CHECKSTYLE:OFF
     public static void main(final String[] args) throws IOException {

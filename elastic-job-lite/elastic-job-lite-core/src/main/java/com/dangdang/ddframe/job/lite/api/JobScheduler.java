@@ -50,6 +50,7 @@ import java.util.Properties;
 
 /**
  * 作业调度器.
+ * 一个作业ElasticJob的调度需要配置一个作业调度器JobScheduler,两者是1：1的关系
  * 
  * @author zhangliang
  * @author caohao
@@ -121,7 +122,7 @@ public class JobScheduler {
         LiteJobConfiguration liteJobConfigFromRegCenter = schedulerFacade.updateJobConfiguration(liteJobConfig);
         // 设置 当前作业分片总数
         JobRegistry.getInstance().setCurrentShardingTotalCount(liteJobConfigFromRegCenter.getJobName(), liteJobConfigFromRegCenter.getTypeConfig().getCoreConfig().getShardingTotalCount());
-        // 创建 作业调度控制器
+        // 创建 作业调度控制器， createJobDetail方法里创建了LiteJob，这个类很重要，Job触发时会调用该类的execute方法
         JobScheduleController jobScheduleController = new JobScheduleController(
                 createScheduler(), createJobDetail(liteJobConfigFromRegCenter.getTypeConfig().getJobClass()), liteJobConfigFromRegCenter.getJobName());
         // 添加 作业调度控制器
@@ -135,7 +136,7 @@ public class JobScheduler {
     private JobDetail createJobDetail(final String jobClass) {
         // 创建 Quartz 作业
         JobDetail result = JobBuilder.newJob(LiteJob.class).withIdentity(liteJobConfig.getJobName()).build();
-        //
+        // 对liteJob对象属性jobFacade进行注入赋值用的
         result.getJobDataMap().put(JOB_FACADE_DATA_MAP_KEY, jobFacade);
         // 创建 Elastic-Job 对象
         Optional<ElasticJob> elasticJobInstance = createElasticJobInstance();
@@ -143,6 +144,7 @@ public class JobScheduler {
             result.getJobDataMap().put(ELASTIC_JOB_DATA_MAP_KEY, elasticJobInstance.get());
         } else if (!jobClass.equals(ScriptJob.class.getCanonicalName())) {
             try {
+                // 对liteJob对象属性elasticJob进行注入赋值用的
                 result.getJobDataMap().put(ELASTIC_JOB_DATA_MAP_KEY, Class.forName(jobClass).newInstance());
             } catch (final ReflectiveOperationException ex) {
                 throw new JobConfigurationException("Elastic-Job: Job class '%s' can not initialize.", jobClass);
