@@ -123,7 +123,7 @@ public abstract class AbstractElasticJobExecutor {
     }
     
     /**
-     * 执行作业. 总入口
+     * 执行作业. 模版方法总入口
      */
     public final void execute() {
         // 检查 作业执行环境
@@ -159,8 +159,12 @@ public abstract class AbstractElasticJobExecutor {
         // 执行 普通触发的作业
         execute(shardingContexts, JobExecutionEvent.ExecutionSource.NORMAL_TRIGGER);
         // 执行 被跳过触发的作业
+        // 什么是任务错过机制，一个任务执行太长，到达下一个触发时间点时 还未执行完，那么就是任务错过机制。
+        // 任务错过会写入 zk节点信息。 当任务执行完成后 ，发现有错过节点信息，那么获取 错过的节点信息 再执行一次
         while (jobFacade.isExecuteMisfired(shardingContexts.getShardingItemParameters().keySet())) {
             jobFacade.clearMisfire(shardingContexts.getShardingItemParameters().keySet());
+            // 如果一个任务JOB的调度频率为每10s一次，在某个时间，该job执行耗时用了33s（平时只需执行5s），按照正常调度，应该后续会触发3次调度，那该job后执行完，会连续执行3次调度吗？
+            // 在33s这次任务执行完成后，如果后面的任务执行在10s内执行完毕的话，只会触发一次，不会补偿3次，因为ElasticJob记录任务错失执行，只是创建了misfire节点，并不会记录错失的次数
             execute(shardingContexts, JobExecutionEvent.ExecutionSource.MISFIRE);
         }
         // 执行 作业失效转移
@@ -218,7 +222,7 @@ public abstract class AbstractElasticJobExecutor {
 
     /**
      * 执行多个作业的分片
-     *
+     * 如果有多个item，遍历所有item，提交到一个线程池执行job子类具体方法，用countDown.await等待所有job执行完
      * @param shardingContexts 分片上下文集合
      * @param executionSource 执行来源
      */

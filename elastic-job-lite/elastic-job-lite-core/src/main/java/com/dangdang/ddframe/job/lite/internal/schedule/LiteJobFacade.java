@@ -117,21 +117,29 @@ public final class LiteJobFacade implements JobFacade {
             failoverService.updateFailoverComplete(shardingContexts.getShardingItemParameters().keySet());
         }
     }
-    
+
+    /**
+     * 为什么要选主节点
+     * 1.第一个是通过选主节点来进行分片
+     * 2.第二个是选主节点来执行失效转移的作业
+     * @return
+     */
     @Override
     public ShardingContexts getShardingContexts() {
         // 获得 失效转移的作业分片项
         boolean isFailover = configService.load(true).isFailover();
         if (isFailover) {
+            // 如果开启了失效转移，获取需要本作业服务器的执行的 失效转移分片项集合
+            // 由哪些分片执行这些失效的作业，也是由主节点选的
             List<Integer> failoverShardingItems = failoverService.getLocalFailoverItems();
             if (!failoverShardingItems.isEmpty()) {
                 return executionContextService.getJobShardingContext(failoverShardingItems);
             }
         }
         // 作业分片，如果需要分片且当前节点为主节点，
-        // wuby 主节点执行数据分片主要逻辑
+        // wuby 主节点执行数据分片主要逻辑，如果当前需要分片则选举一个作业主节点，作业主节点来执行分片的逻辑，将分片项按分片算法拆分给当前在线的进程实例
         shardingService.shardingIfNecessary();
-        // 获得 分配在本机的作业分片项, 例如分配给本机 0，1分片项
+        // 获得 分配在本机的作业分片项, 例如分配给本机 0，1分片项， 移除无效分片
         List<Integer> shardingItems = shardingService.getLocalShardingItems();
         // 移除 分配在本机的失效转移的作业分片项目，即检查每个分配项0,1下面的failover目录有没有本作业，有则移除
         if (isFailover) {

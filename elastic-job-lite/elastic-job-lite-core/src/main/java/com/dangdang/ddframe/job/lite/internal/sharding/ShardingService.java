@@ -100,6 +100,7 @@ public final class ShardingService {
      * </p>
      */
     public void shardingIfNecessary() {
+        // 获取当前可用实例
         List<JobInstance> availableJobInstances = instanceService.getAvailableJobInstances();
         if (!isNeedSharding() // 判断是否需要重新分片
                 || availableJobInstances.isEmpty()) {
@@ -111,19 +112,21 @@ public final class ShardingService {
             return;
         }
         // 【主节点】作业分片项分配
-        // 等待 作业未在运行中状态
+        // 等待 作业未在运行中状态，while等待上次执行的作业执行完毕后  退出，继续执行下面代码
         waitingOtherJobCompleted();
-        // 加载liteJob的配置
+        // 加载liteJob的配置，拉取作业最新分片配置信息
         LiteJobConfiguration liteJobConfig = configService.load(false);
         // 分片数量
         int shardingTotalCount = liteJobConfig.getTypeConfig().getCoreConfig().getShardingTotalCount();
         // 设置 作业正在重分片的标记
         log.debug("Job '{}' sharding begin.", jobName);
+        //主节点：分片开始，先设置一个临时节点，表示主节点正在执行分片操作
         jobNodeStorage.fillEphemeralJobNode(ShardingNode.PROCESSING, "");
         // 重置 作业分片项信息
         resetShardingInfo(shardingTotalCount);
-        // 【事务中】设置 作业分片项信息
+        // 【事务中】设置 作业分片项信息，获取分片策略算法
         JobShardingStrategy jobShardingStrategy = JobShardingStrategyFactory.getStrategy(liteJobConfig.getJobShardingStrategyClass());
+        // 主节点：使用zk事务进行分片，将分片操作包含到一个事务中，这个操作还包括：生成分片，将分片写入jobName/sharding/{item}/instance路径下，删除sharding/necessary,processing路径
         jobNodeStorage.executeInTransaction(new PersistShardingInfoTransactionExecutionCallback(jobShardingStrategy.sharding(availableJobInstances, jobName, shardingTotalCount)));
         log.debug("Job '{}' sharding complete.", jobName);
     }
